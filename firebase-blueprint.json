@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Information about the authenticated user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "TestResult": {
+      "title": "TestResult",
+      "description": "A completed personality test result.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "archetypeKey": { "type": "string" },
+        "scores": { "type": "object" },
+        "answers": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "archetypeKey", "scores", "createdAt"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Subscriber lead requesting their spiritual profile by email.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "archetypeKey": { "type": "string", "maxLength": 50 },
+        "archetypeName": { "type": "string", "maxLength": 100 },
+        "consent": { "type": "boolean" },
+        "source": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "archetypeKey", "consent", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Public profile and settings for users."
+    },
+    "testResults/{resultId}": {
+      "schema": "TestResult",
+      "description": "Stored results of personality tests."
+    },
+    "leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Captured newsletter and spiritual profile email leads."
+    }
+  }
+}

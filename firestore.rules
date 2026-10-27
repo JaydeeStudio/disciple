@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entities Validation ---
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 200 &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidTestResult(data) {
+      return data.userId == request.auth.uid &&
+             data.archetypeKey is string && data.archetypeKey.size() <= 50 &&
+             data.scores is map &&
+             data.createdAt == request.time;
+    }
+
+    function isValidLead(data) {
+      return data.email is string && 
+             data.email.size() >= 5 && data.email.size() <= 200 &&
+             data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$') &&
+             data.archetypeKey is string && data.archetypeKey.size() <= 50 &&
+             data.consent == true &&
+             data.createdAt == request.time &&
+             data.keys().hasAll(['email', 'archetypeKey', 'consent', 'createdAt']) &&
+             data.keys().hasOnly(['email', 'archetypeKey', 'archetypeName', 'consent', 'source', 'createdAt']);
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) &&
+                       isValidUser(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL']);
+    }
+
+    match /testResults/{resultId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isOwner(request.auth.uid) && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidTestResult(incoming());
+      // Results are immutable
+      allow update, delete: if false;
+    }
+
+    match /leads/{leadId} {
+      // Allows prospective users to submit their email to receive their profile results
+      allow create: if isValidLead(incoming());
+      // Direct reading, listing and updating are blocked to protect user PII
+      allow read, update, delete: if false;
+    }
+  }
+}

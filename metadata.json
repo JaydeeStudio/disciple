@@ -1,0 +1,6 @@
+{
+  "name": "Quel disciple suis-je ?",
+  "description": "Un test de personnalité chrétien approfondi basé sur les archétypes bibliques pour découvrir votre tempérament spirituel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
