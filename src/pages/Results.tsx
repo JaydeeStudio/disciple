@@ -28,7 +28,8 @@ import {
   Copy,
   Check,
   Mail,
-  MessageCircle
+  MessageCircle,
+  Compass
 } from 'lucide-react';
 import { db } from '../services/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -67,6 +68,13 @@ const Results: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // Read possible query parameters from shared link (e.g. ?score=94&nom=David)
+  const searchParams = new URLSearchParams(location.search);
+  const queryScore = searchParams.get('score');
+  const queryName = searchParams.get('nom');
+  const parsedScore = queryScore ? parseInt(queryScore, 10) : null;
+  const isSharedLink = !location.state?.calculation && (Boolean(queryScore) || Boolean(queryName));
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -112,8 +120,12 @@ const Results: React.FC = () => {
           })
           .sort((a, b) => b.affinity - a.affinity);
 
+        const initialAffinity = (parsedScore && !isNaN(parsedScore) && parsedScore > 0 && parsedScore <= 100)
+          ? parsedScore
+          : 94;
+
         setCalculation({
-          primaryMatch: { archetype: arch, affinity: 95, distance: 0 },
+          primaryMatch: { archetype: arch, affinity: initialAffinity, distance: 0 },
           secondaryMatches: closeMatches.slice(0, 3),
           genderEquivalentMatch: closeMatches.find(m => m.archetype.gender !== arch.gender),
           dimensions: syntheticDimensions,
@@ -123,8 +135,8 @@ const Results: React.FC = () => {
 
         setResult({
           archetypeKey: lowerId,
-          name: contextUserData?.name || 'Disciple',
-          affinity: 95,
+          name: queryName ? decodeURIComponent(queryName) : (contextUserData?.name || 'Disciple'),
+          affinity: initialAffinity,
           isTemp: true
         });
         setLoading(false);
@@ -151,7 +163,15 @@ const Results: React.FC = () => {
     };
 
     fetchResult();
-  }, [id, location.state, contextUserData]);
+  }, [id, location.state, contextUserData, queryScore, queryName, parsedScore]);
+
+  const archetype = ARCHETYPES[result?.archetypeKey];
+
+  const affinityScore = result?.affinity || (parsedScore && !isNaN(parsedScore) ? parsedScore : calculation?.primaryMatch.affinity) || 94;
+  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://discipledejesus.netlify.app';
+  const personalizedShareUrl = archetype 
+    ? `${originUrl}/resultats/${archetype.key}?score=${affinityScore}${result?.name && result.name !== 'Disciple' ? `&nom=${encodeURIComponent(result.name)}` : ''}`
+    : originUrl;
 
   const downloadPDF = async () => {
     if (!resultRef.current) return;
@@ -173,7 +193,7 @@ const Results: React.FC = () => {
   };
 
   const copyShareLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(personalizedShareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
@@ -183,7 +203,7 @@ const Results: React.FC = () => {
       navigator.share({
         title: 'Quel disciple suis-je ?',
         text: `Mon tempérament biblique correspond à ${archetype?.name} (${archetype?.title}) avec ${affinityScore}% de ressemblance ! Fais le test pour découvrir le tien :`,
-        url: window.location.href,
+        url: personalizedShareUrl,
       }).catch(() => {});
     } else {
       copyShareLink();
@@ -199,8 +219,6 @@ const Results: React.FC = () => {
     </div>
   );
 
-  const archetype = ARCHETYPES[result?.archetypeKey];
-
   if (!archetype) return (
     <div className="min-h-screen flex items-center justify-center p-6 text-center bg-brand-bg">
       <div>
@@ -212,21 +230,45 @@ const Results: React.FC = () => {
     </div>
   );
 
-  const affinityScore = result?.affinity || calculation?.primaryMatch.affinity || 92;
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareText = `J'ai fait le test « Quel disciple suis-je ? » et mon profil correspond à ${archetype.name} (${archetype.title}) avec ${affinityScore}% d'affinité ! Découvre aussi quel personnage biblique te ressemble :`;
 
   // Social share URLs
-  const shareWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
-  const shareFacebook = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
-  const shareX = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
-  const shareLinkedIn = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
-  const shareMail = `mailto:?subject=${encodeURIComponent(`Mon profil biblique : ${archetype.name}`)}&body=${encodeURIComponent(`${shareText}\n\n${currentUrl}`)}`;
+  const shareWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${personalizedShareUrl}`)}`;
+  const shareFacebook = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(personalizedShareUrl)}`;
+  const shareX = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(personalizedShareUrl)}`;
+  const shareLinkedIn = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(personalizedShareUrl)}`;
+  const shareMail = `mailto:?subject=${encodeURIComponent(`Mon profil biblique : ${archetype.name}`)}&body=${encodeURIComponent(`${shareText}\n\n${personalizedShareUrl}`)}`;
 
   return (
     <div className="min-h-screen bg-brand-bg pt-24 pb-20">
       <div className="container mx-auto px-4 max-w-5xl">
         
+        {/* Banner if visiting from a friend's shared link */}
+        {isSharedLink && (
+          <div className="bg-gradient-to-r from-brand-ochre/20 via-[#fdfaf5] to-brand-terracotta/10 border border-brand-ochre/30 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-brand-terracotta text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Sparkles className="w-5 h-5 text-amber-200" />
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-terracotta">
+                  Résultat partagé par un proche
+                </p>
+                <p className="text-sm sm:text-base font-semibold text-brand-charcoal">
+                  {queryName ? <span className="font-bold">{decodeURIComponent(queryName)}</span> : 'Votre ami(e)'} a obtenu <span className="text-brand-terracotta font-bold">{affinityScore}% de ressemblance</span> avec {archetype.name} !
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/test"
+              className="px-4 py-2.5 bg-brand-charcoal hover:bg-brand-terracotta text-white rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Compass className="w-4 h-4 text-brand-ochre" />
+              <span>Faire le test à mon tour</span>
+            </Link>
+          </div>
+        )}
+
         {/* Top Actions Bar */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
           <Link to="/test" className="flex items-center gap-2 text-brand-charcoal/70 hover:text-brand-charcoal transition-colors font-semibold text-sm">
@@ -243,14 +285,14 @@ const Results: React.FC = () => {
             </Link>
             <button 
               onClick={shareNative}
-              className="px-3.5 py-2 bg-white border border-brand-ochre/20 rounded-xl text-brand-charcoal font-semibold hover:bg-brand-bg transition-all text-xs flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-white border border-brand-ochre/20 rounded-xl text-brand-charcoal font-semibold hover:bg-brand-bg transition-all text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5 text-brand-terracotta" />
               <span>Partager</span>
             </button>
             <button 
               onClick={downloadPDF}
-              className="px-4 py-2 bg-brand-charcoal text-white rounded-xl font-semibold hover:bg-brand-terracotta transition-all text-xs flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-brand-charcoal text-white rounded-xl font-semibold hover:bg-brand-terracotta transition-all text-xs flex items-center gap-2 shadow-sm cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Télécharger le PDF</span>
@@ -360,7 +402,9 @@ const Results: React.FC = () => {
         <EmailCaptureCard
           archetypeKey={archetype.key}
           archetypeName={archetype.name}
+          affinity={affinityScore}
           onOpenPrivacy={() => setPrivacyOpen(true)}
+          onDownloadPDF={downloadPDF}
         />
 
         {/* SOCIAL SHARING SECTION - High relevance for French-speaking community */}

@@ -34,10 +34,28 @@ const Test: React.FC = () => {
   const isLastQuestion = currentQuestionIndex === QUESTIONS.length - 1;
   const currentAnswer = answers[currentQuestion.id];
 
+  // Scroll to top whenever question index changes
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentQuestionIndex]);
+
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
     if (formName && formAge) {
       setUserData({ name: formName, gender: formGender, age: formAge });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleSelectOption = (index: number) => {
+    setAnswer(currentQuestion.id, index);
+    
+    // Auto-advance to next question after subtle feedback pause (except on final question)
+    if (!isLastQuestion) {
+      setTimeout(() => {
+        nextQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 250);
     }
   };
 
@@ -202,7 +220,7 @@ const Test: React.FC = () => {
                 <button
                   key={index}
                   id={`option-${index}`}
-                  onClick={() => setAnswer(currentQuestion.id, index)}
+                  onClick={() => handleSelectOption(index)}
                   className={cn(
                     "w-full text-left p-6 rounded-xl border-2 transition-all duration-300 flex items-center justify-between group",
                     currentAnswer === index 

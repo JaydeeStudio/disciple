@@ -6,6 +6,8 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   signIn: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -15,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -46,15 +49,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const clearAuthError = () => setAuthError(null);
+
   const signIn = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    setAuthError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      console.warn('Firebase Auth notice:', err);
+      if (err?.code === 'auth/unauthorized-domain') {
+        setAuthError("Pour autoriser la connexion Google sur Netlify, ajoutez « discipledejesus.netlify.app » dans Firebase Console > Authentification > Paramètres > Domaines autorisés.");
+      } else if (err?.code === 'auth/popup-closed-by-user') {
+        // User closed popup, do nothing
+      } else {
+        setAuthError("La connexion n'a pas pu aboutir. Vos résultats sont néanmoins sauvegardés sur votre appareil.");
+      }
+    }
   };
 
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, logout }}>
+    <AuthContext.Provider value={{ user, loading, authError, clearAuthError, signIn, logout }}>
       {children}
     </AuthContext.Provider>
   );

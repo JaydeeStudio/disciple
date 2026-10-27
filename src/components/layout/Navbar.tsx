@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, User, Menu, X, BookOpen, Calculator, Compass, Sparkles } from 'lucide-react';
+import { LogOut, User, Menu, X, BookOpen, Calculator, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 
@@ -31,7 +31,7 @@ const BrandEmblem: React.FC<{ className?: string }> = ({ className = "w-9 h-9" }
 );
 
 const Navbar: React.FC = () => {
-  const { user, signIn, logout } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -110,13 +110,13 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
 
-        {/* Right Action: Auth button with clear context */}
+        {/* Right Action: Direct test CTA or Profile if signed in */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           {user ? (
             <div className="flex items-center gap-3">
               <Link 
                 to="/profil" 
-                title="Mon profil et mes résultats sauvegardés"
+                title="Mon profil et mes résultats"
                 className="px-3 py-1.5 text-brand-charcoal hover:bg-brand-ochre/10 rounded-xl transition-colors flex items-center gap-2 text-xs font-bold border border-brand-ochre/15"
               >
                 <div className="w-6 h-6 rounded-full bg-brand-charcoal text-white flex items-center justify-center text-[10px] font-bold">
@@ -127,20 +127,24 @@ const Navbar: React.FC = () => {
               <button 
                 onClick={logout}
                 title="Se déconnecter"
-                className="text-xs font-medium text-brand-charcoal/60 hover:text-brand-terracotta transition-colors p-1"
+                className="text-xs font-medium text-brand-charcoal/60 hover:text-brand-terracotta transition-colors p-1 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <button 
-              onClick={signIn}
-              title="Connectez-vous pour sauvegarder vos résultats et votre historique"
-              className="px-3.5 py-1.5 rounded-xl border border-brand-ochre/25 text-brand-charcoal hover:border-brand-charcoal hover:bg-white text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shadow-sm bg-white/60"
+            <Link 
+              to="/test" 
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap shadow-sm",
+                location.pathname === '/test'
+                  ? "bg-brand-ochre/20 text-brand-charcoal border border-brand-ochre/30"
+                  : "bg-brand-charcoal hover:bg-brand-terracotta text-white"
+              )}
             >
-              <User className="w-3.5 h-3.5 text-brand-sage" />
-              <span>Connexion</span>
-            </button>
+              <Compass className="w-4 h-4 text-brand-ochre" />
+              <span>{location.pathname === '/test' ? 'Test en cours' : 'Commencer le test'}</span>
+            </Link>
           )}
         </div>
 
@@ -169,8 +173,11 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)} 
               className="py-3 px-4 bg-brand-charcoal text-white rounded-xl text-sm font-bold flex items-center justify-between shadow-sm"
             >
-              <span>Faire le test</span>
-              <Compass className="w-4 h-4" />
+              <span className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-brand-ochre" />
+                Faire le test
+              </span>
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white/90">36 questions</span>
             </Link>
 
             <Link 
@@ -193,34 +200,24 @@ const Navbar: React.FC = () => {
               <span>Méthodologie & calcul</span>
             </Link>
 
-            <div className="pt-2 border-t border-brand-ochre/15 mt-1">
-              {user ? (
-                <div className="flex items-center justify-between pt-1">
-                  <Link 
-                    to="/profil" 
-                    onClick={() => setIsOpen(false)} 
-                    className="text-sm font-bold text-brand-charcoal flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Mon profil ({user.displayName?.split(' ')[0] || 'Enregistré'})</span>
-                  </Link>
-                  <button 
-                    onClick={() => { logout(); setIsOpen(false); }} 
-                    className="text-xs font-bold text-brand-terracotta"
-                  >
-                    Déconnexion
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => { signIn(); setIsOpen(false); }} 
-                  className="w-full py-2.5 bg-brand-bg border border-brand-ochre/20 text-brand-charcoal font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+            {user && (
+              <div className="pt-2 border-t border-brand-ochre/15 mt-1 flex items-center justify-between">
+                <Link 
+                  to="/profil" 
+                  onClick={() => setIsOpen(false)} 
+                  className="text-sm font-bold text-brand-charcoal flex items-center gap-2"
                 >
-                  <User className="w-4 h-4 text-brand-sage" />
-                  <span>Connexion (sauvegarder mes résultats)</span>
+                  <User className="w-4 h-4" />
+                  <span>Mon profil</span>
+                </Link>
+                <button 
+                  onClick={() => { logout(); setIsOpen(false); }} 
+                  className="text-xs font-bold text-brand-terracotta"
+                >
+                  Déconnexion
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

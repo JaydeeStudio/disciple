@@ -61,13 +61,13 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
                   <Cookie className="w-5 h-5 text-brand-ochre" />
                   <h4>Pourquoi n'y a-t-il aucun bandeau de cookies ?</h4>
                 </div>
-                <p className="text-xs sm:text-sm text-brand-charcoal/75">
-                  Ce site n'utilise <strong>aucun cookie publicitaire, aucun traceur tiers et aucun pixel de reciblage</strong> (pas de tracking Facebook, Google Ads ou réseaux publicitaires). 
-                  Nous utilisons exclusivement le stockage technique local (<code className="px-1.5 py-0.5 bg-white rounded text-xs font-mono border">localStorage</code>) pour enregistrer la progression de votre test sur votre propre appareil.
+                <p className="text-xs sm:text-sm text-brand-charcoal/75 leading-relaxed">
+                  Ce site n'utilise <strong>aucun cookie publicitaire, aucun traceur tiers et aucun pixel de pistage</strong> (aucun suivi publicitaire Facebook, TikTok ou Google Ads). 
+                  Nous utilisons uniquement la mémoire technique de votre propre navigateur web afin de conserver temporairement l'état de vos réponses en cas d'interruption du test, sans jamais déposer de fichiers mouchards sur votre appareil.
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-emerald-800 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
                   <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>Conforme aux directives CNIL & RGPD : aucun bandeau intrusif requis.</span>
+                  <span>Conforme aux recommandations CNIL & RGPD : aucun bandeau intrusif requis.</span>
                 </div>
               </div>
 

@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
-import { Mail, CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Mail, CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Loader2, Download } from 'lucide-react';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface EmailCaptureCardProps {
   archetypeKey: string;
   archetypeName: string;
+  affinity?: number;
   onOpenPrivacy: () => void;
+  onDownloadPDF?: () => void;
 }
 
 export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
   archetypeKey,
   archetypeName,
+  affinity = 94,
   onOpenPrivacy,
+  onDownloadPDF,
 }) => {
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [emailSentStatus, setEmailSentStatus] = useState<'sent' | 'pending_key' | 'saved'>('saved');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,61 +50,124 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
         email: trimmedEmail,
         archetypeKey: archetypeKey,
         archetypeName: archetypeName,
+        affinity,
         consent: true,
         source: 'test_result_page',
         createdAt: serverTimestamp(),
       });
-
-      // 2. Local fallback storage for resilience
-      try {
-        const storedLeads = JSON.parse(localStorage.getItem('disciple_leads') || '[]');
-        storedLeads.push({
-          email: trimmedEmail,
-          archetypeKey,
-          archetypeName,
-          timestamp: new Date().toISOString(),
-        });
-        localStorage.setItem('disciple_leads', JSON.stringify(storedLeads));
-      } catch (err) {
-        // localStorage non-blocking
-      }
-
-      setSubmitted(true);
     } catch (err: any) {
-      console.warn('Firestore lead submission notice:', err);
-      // Even if firestore has network or security rules fallback, keep user experience positive and save locally
-      try {
-        const storedLeads = JSON.parse(localStorage.getItem('disciple_leads') || '[]');
-        storedLeads.push({
+      console.warn('Firestore lead notice:', err);
+    }
+
+    // 2. Local fallback storage for resilience
+    try {
+      const storedLeads = JSON.parse(localStorage.getItem('disciple_leads') || '[]');
+      storedLeads.push({
+        email: trimmedEmail,
+        archetypeKey,
+        archetypeName,
+        affinity,
+        timestamp: new Date().toISOString(),
+      });
+      localStorage.setItem('disciple_leads', JSON.stringify(storedLeads));
+    } catch (err) {
+      // ignore
+    }
+
+    // 3. Trigger Resend API via Netlify Serverless Function
+    try {
+      const response = await fetch('/api/send-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           email: trimmedEmail,
           archetypeKey,
           archetypeName,
-          timestamp: new Date().toISOString(),
+          affinity,
+          siteUrl: window.location.origin
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setEmailSentStatus('sent');
+        } else if (data.warning === 'RESEND_API_KEY_MANQUANTE') {
+          setEmailSentStatus('pending_key');
+        } else {
+          setEmailSentStatus('saved');
+        }
+      } else {
+        // Fallback directly to /.netlify/functions/send-result if rewrite wasn't active
+        const fallbackRes = await fetch('/.netlify/functions/send-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: trimmedEmail,
+            archetypeKey,
+            archetypeName,
+            affinity,
+            siteUrl: window.location.origin
+          })
         });
-        localStorage.setItem('disciple_leads', JSON.stringify(storedLeads));
-      } catch (e) {
-        // ignore
+        if (fallbackRes.ok) {
+          const fbData = await fallbackRes.json();
+          setEmailSentStatus(fbData.success ? 'sent' : 'pending_key');
+        } else {
+          setEmailSentStatus('saved');
+        }
       }
-      setSubmitted(true);
+    } catch (sendErr) {
+      console.warn('Email dispatch notice:', sendErr);
+      setEmailSentStatus('saved');
     } finally {
+      setSubmitted(true);
       setLoading(false);
     }
   };
 
   if (submitted) {
     return (
-      <div className="bg-gradient-to-br from-emerald-50 to-[#fdfaf5] border-2 border-emerald-300/60 rounded-3xl p-8 sm:p-10 shadow-sm text-center mb-12">
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-[#fdfaf5] border-2 border-emerald-300/60 rounded-3xl p-8 sm:p-10 shadow-sm text-center mb-12">
         <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <h3 className="font-display text-2xl text-brand-charcoal mb-2">
-          Votre bilan complet est en route !
+          {emailSentStatus === 'sent' 
+            ? 'Bilan envoyé avec succès dans votre boîte mail !' 
+            : 'Votre demande a été bien enregistrée !'}
         </h3>
-        <p className="text-brand-charcoal/75 text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-4">
-          Nous avons bien enregistré votre demande pour <span className="font-bold text-brand-charcoal">{email}</span>. Vous recevrez prochainement la fiche d'approfondissement dédiée à l'archétype <span className="font-bold text-brand-terracotta">{archetypeName}</span>.
+        
+        <p className="text-brand-charcoal/75 text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-6">
+          {emailSentStatus === 'sent' ? (
+            <>
+              Votre fiche complète a été transmise à <span className="font-bold text-brand-charcoal">{email}</span> via Resend. Pensez à vérifier vos courriers indésirables / spams si vous ne la voyez pas d'ici quelques instants.
+            </>
+          ) : emailSentStatus === 'pending_key' ? (
+            <>
+              Votre adresse <span className="font-bold text-brand-charcoal">{email}</span> est sauvegardée. Pour activer l'envoi d'e-mails automatique en production, pensez à renseigner votre clé <code className="bg-amber-100 text-amber-800 px-1 py-0.5 rounded text-xs">RESEND_API_KEY</code> sur votre tableau de bord Netlify.
+            </>
+          ) : (
+            <>
+              Votre inscription pour <span className="font-bold text-brand-charcoal">{email}</span> est validée. Vous pouvez également récupérer directement votre bilan au format PDF dès maintenant :
+            </>
+          )}
         </p>
+
+        {onDownloadPDF && (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <button
+              onClick={onDownloadPDF}
+              className="px-6 py-3 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-brand-ochre" />
+              <span>Télécharger mon bilan de {archetypeName} (PDF)</span>
+            </button>
+          </div>
+        )}
+
         <p className="text-xs text-brand-charcoal/50">
-          Pensez à vérifier votre dossier d'indésirables si vous ne le voyez pas arriver.
+          Projet gratuit et indépendant au service de l'édification de la communauté.
         </p>
       </div>
     );
