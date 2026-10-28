@@ -77,7 +77,7 @@ export default async (req, context) => {
                     </h1>
 
                     <p style="margin: 0 0 24px 0; font-size: 16px; color: #6b705c; font-style: italic;">
-                      Votre bilan de tempérament spirituel
+                      Votre synthèse de profil et repères de travail sur soi
                     </p>
 
                     <div style="background-color: #fdfaf5; border-left: 4px solid #d4a373; padding: 16px 20px; border-radius: 0 12px 12px 0; margin-bottom: 28px;">

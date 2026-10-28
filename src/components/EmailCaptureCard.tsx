@@ -134,14 +134,14 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
         </div>
         <h3 className="font-display text-2xl text-brand-charcoal mb-2">
           {emailSentStatus === 'sent' 
-            ? 'Bilan envoyé avec succès dans votre boîte mail !' 
+            ? 'Synthèse de profil envoyée avec succès !' 
             : 'Votre demande a été bien enregistrée !'}
         </h3>
         
         <p className="text-brand-charcoal/75 text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-6">
           {emailSentStatus === 'sent' ? (
             <>
-              Votre fiche complète a été transmise à <span className="font-bold text-brand-charcoal">{email}</span> via Resend. Pensez à vérifier vos courriers indésirables / spams si vous ne la voyez pas d'ici quelques instants.
+              Votre synthèse récapitulative a été transmise à <span className="font-bold text-brand-charcoal">{email}</span>. Pensez à vérifier vos courriers indésirables / spams si vous ne la voyez pas d'ici quelques instants.
             </>
           ) : emailSentStatus === 'pending_key' ? (
             <>
@@ -149,7 +149,7 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
             </>
           ) : (
             <>
-              Votre inscription pour <span className="font-bold text-brand-charcoal">{email}</span> est validée. Vous pouvez également récupérer directement votre bilan au format PDF dès maintenant :
+              Votre inscription pour <span className="font-bold text-brand-charcoal">{email}</span> est validée. Vous pouvez également récupérer directement votre synthèse au format PDF dès maintenant :
             </>
           )}
         </p>
@@ -161,13 +161,13 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
               className="px-6 py-3 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4 text-brand-ochre" />
-              <span>Télécharger mon bilan de {archetypeName} (PDF)</span>
+              <span>Télécharger ma synthèse de profil (PDF)</span>
             </button>
           </div>
         )}
 
         <p className="text-xs text-brand-charcoal/50">
-          Projet gratuit et indépendant au service de l'édification de la communauté.
+          Projet indépendant au service de la clarté et de la compréhension de soi.
         </p>
       </div>
     );
@@ -178,16 +178,16 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
       {/* Decorative subtle badge */}
       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-ochre/15 rounded-full text-brand-charcoal text-[11px] font-bold uppercase tracking-wider mb-4">
         <Sparkles className="w-3.5 h-3.5 text-brand-terracotta" />
-        <span>Guide d'accompagnement spirituel offert</span>
+        <span>Synthèse de profil offerte</span>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8 items-center">
         <div className="lg:col-span-7">
           <h3 className="font-display text-2xl sm:text-3xl text-brand-charcoal mb-3 leading-snug">
-            Recevez votre profil spirituel complet et la fiche de <span className="text-brand-terracotta">{archetypeName}</span>
+            Recevez votre synthèse de profil et la fiche repère de <span className="text-brand-terracotta">{archetypeName}</span>
           </h3>
           <p className="text-brand-charcoal/70 text-sm sm:text-base leading-relaxed mb-4">
-            Gardez une trace de vos résultats : nous vous envoyons un récapitulatif détaillé avec les 5 axes d'équilibre de votre profil, ses angles morts à surveiller et des pistes concrètes de prière et d'action.
+            Gardez une trace de vos résultats : nous vous envoyons un récapitulatif avec vos 5 axes d'équilibre, vos points de vigilance et des repères pratiques de travail sur soi.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-brand-charcoal/65 font-medium">
@@ -241,7 +241,7 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
                 className="mt-1 w-4 h-4 text-brand-terracotta rounded border-brand-ochre/40 focus:ring-brand-terracotta cursor-pointer"
               />
               <label htmlFor="consent-checkbox" className="text-[11px] text-brand-charcoal/70 leading-snug cursor-pointer select-none">
-                J'accepte de recevoir mon bilan et des réflexions spirituelles par e-mail. Désinscription en 1 clic à tout moment.{' '}
+                J'accepte de recevoir ma synthèse de profil et des réflexions pour le travail sur soi par e-mail. Désinscription en 1 clic à tout moment.{' '}
                 <button
                   type="button"
                   onClick={onOpenPrivacy}
@@ -271,7 +271,7 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
                 </>
               ) : (
                 <>
-                  <span>Recevoir mon bilan par e-mail</span>
+                  <span>Recevoir ma synthèse gratuite par e-mail</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

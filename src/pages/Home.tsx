@@ -159,7 +159,7 @@ const Home: React.FC = () => {
                     </p>
                   </div>
                   <Link
-                    to={`/resultats/${char.key}`}
+                    to={`/personnages?profil=${char.key}`}
                     className="text-xs font-bold text-brand-charcoal hover:text-brand-terracotta flex items-center gap-1 pt-4 border-t border-brand-ochre/10"
                   >
                     Découvrir ce profil

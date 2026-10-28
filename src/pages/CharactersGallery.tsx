@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ARCHETYPES, Archetype, SpiritualDimension } from '../data/archetypes';
 import { 
   Search, 
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { BiblicalSilhouette } from '../components/BiblicalSilhouette';
+import { triggerHaptic } from '../lib/haptics';
 
 const DIMENSION_LABELS: Record<SpiritualDimension, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
   contemplative: { label: "Contemplation et intériorité", color: "bg-blue-50 text-blue-800 border-blue-200", icon: Sparkles },
@@ -35,6 +36,7 @@ const DIMENSION_LABELS: Record<SpiritualDimension, { label: string; color: strin
 };
 
 const CharactersGallery: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [selectedGender, setSelectedGender] = useState<'ALL' | 'M' | 'F'>('ALL');
   const [selectedTestament, setSelectedTestament] = useState<'ALL' | 'NT' | 'AT'>('ALL');
@@ -42,6 +44,29 @@ const CharactersGallery: React.FC = () => {
   const [activeModalArchetype, setActiveModalArchetype] = useState<Archetype | null>(null);
 
   const archetypesList = useMemo(() => Object.values(ARCHETYPES), []);
+
+  // Open modal if profil param is present in URL (e.g. /personnages?profil=jean)
+  useEffect(() => {
+    const profilParam = searchParams.get('profil');
+    if (profilParam && ARCHETYPES[profilParam.toLowerCase()]) {
+      setActiveModalArchetype(ARCHETYPES[profilParam.toLowerCase()]);
+    }
+  }, [searchParams]);
+
+  // Close modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        setActiveModalArchetype(null);
+        triggerHaptic('light');
+      }
+    };
+
+    if (activeModalArchetype) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [activeModalArchetype]);
 
   const filteredArchetypes = useMemo(() => {
     return archetypesList.filter(char => {
@@ -291,18 +316,15 @@ const CharactersGallery: React.FC = () => {
                 {/* Footer Card */}
                 <div className="pt-4 border-t border-brand-ochre/10 flex items-center justify-between">
                   <button
-                    onClick={() => setActiveModalArchetype(char)}
-                    className="text-xs font-bold text-brand-charcoal hover:text-brand-terracotta transition-colors flex items-center gap-1.5"
+                    onClick={() => {
+                      triggerHaptic('medium');
+                      setActiveModalArchetype(char);
+                    }}
+                    className="text-xs font-bold text-brand-charcoal hover:text-brand-terracotta transition-colors flex items-center gap-1.5 cursor-pointer group-hover:translate-x-0.5 duration-200"
                   >
-                    Voir le profil complet
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Voir le profil en détails</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-brand-ochre" />
                   </button>
-                  <Link
-                    to={`/resultats/${char.key}`}
-                    className="text-[11px] font-bold px-3 py-1 bg-brand-bg hover:bg-brand-terracotta hover:text-white text-brand-charcoal rounded-lg transition-colors"
-                  >
-                    Fiche détaillée
-                  </Link>
                 </div>
               </motion.div>
             );
@@ -321,7 +343,7 @@ const CharactersGallery: React.FC = () => {
                 setSelectedTestament('ALL');
                 setSelectedDimension('ALL');
               }}
-              className="px-6 py-2.5 bg-brand-charcoal text-white text-xs font-bold rounded-xl hover:bg-brand-terracotta transition-colors"
+              className="px-6 py-2.5 bg-brand-charcoal text-white text-xs font-bold rounded-xl hover:bg-brand-terracotta transition-colors cursor-pointer"
             >
               Réinitialiser les filtres
             </button>
@@ -332,8 +354,15 @@ const CharactersGallery: React.FC = () => {
       {/* Modal for full character profile */}
       <AnimatePresence>
         {activeModalArchetype && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/50 backdrop-blur-sm">
+          <div 
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveModalArchetype(null);
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/50 backdrop-blur-sm"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -341,8 +370,11 @@ const CharactersGallery: React.FC = () => {
             >
               {/* Close Button */}
               <button
-                onClick={() => setActiveModalArchetype(null)}
-                className="absolute top-6 right-6 p-2 text-brand-charcoal/50 hover:text-brand-charcoal hover:bg-brand-bg rounded-full transition-all"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setActiveModalArchetype(null);
+                }}
+                className="absolute top-6 right-6 p-2 text-brand-charcoal/50 hover:text-brand-charcoal hover:bg-brand-bg rounded-full transition-all cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -385,12 +417,12 @@ const CharactersGallery: React.FC = () => {
                 {activeModalArchetype.description}
               </p>
 
-              {/* Strengths & Growth Areas - Standard French sentence case */}
+              {/* Strengths & Growth Areas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-[#fcfaf7] p-5 rounded-2xl border border-brand-ochre/15">
                   <h4 className="font-bold text-brand-charcoal text-sm mb-3 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-brand-ochre" />
-                    Forces naturelles
+                    Forces motrices
                   </h4>
                   <ul className="space-y-2">
                     {activeModalArchetype.strengths.map((s, i) => (
@@ -405,7 +437,7 @@ const CharactersGallery: React.FC = () => {
                 <div className="bg-[#fcfaf7] p-5 rounded-2xl border border-brand-ochre/15">
                   <h4 className="font-bold text-brand-charcoal text-sm mb-3 flex items-center gap-2">
                     <Info className="w-4 h-4 text-brand-terracotta" />
-                    Invitations de croissance spirituelle
+                    Axes de vigilance et de travail sur soi
                   </h4>
                   <ul className="space-y-2">
                     {activeModalArchetype.spiritualInvitations.map((w, i) => (
@@ -423,7 +455,7 @@ const CharactersGallery: React.FC = () => {
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-brand-charcoal/60 mb-2 flex items-center gap-1.5">
                     <Target className="w-4 h-4 text-brand-sage" />
-                    Vocation et ministère :
+                    Champs d'action et d'engagement :
                   </h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {activeModalArchetype.missionVocation.map((v, i) => (
@@ -437,7 +469,7 @@ const CharactersGallery: React.FC = () => {
                 <div className="pt-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-brand-charcoal/60 mb-2 flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-brand-ochre" />
-                    Complémentarité fraternelle :
+                    Complémentarités relationnelles :
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {activeModalArchetype.compatibility.map((key) => {
@@ -453,19 +485,30 @@ const CharactersGallery: React.FC = () => {
               </div>
 
               {/* Bottom Actions */}
-              <div className="mt-8 pt-6 border-t border-brand-ochre/15 flex items-center justify-between">
-                <Link
-                  to={`/resultats/${activeModalArchetype.key}`}
-                  className="px-6 py-3 bg-brand-charcoal text-white text-xs font-bold rounded-xl hover:bg-brand-terracotta transition-colors"
-                >
-                  Ouvrir la fiche de résultat complète
-                </Link>
-                <button
-                  onClick={() => setActiveModalArchetype(null)}
-                  className="text-xs font-bold text-brand-charcoal/60 hover:text-brand-charcoal"
-                >
-                  Fermer
-                </button>
+              <div className="mt-8 pt-6 border-t border-brand-ochre/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-brand-charcoal">
+                    Vous vous reconnaissez dans le tempérament de {activeModalArchetype.name} ?
+                  </p>
+                  <p className="text-[11px] text-brand-charcoal/60">
+                    Faites le test gratuit (3 minutes) pour évaluer votre affinité personnelle.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={() => setActiveModalArchetype(null)}
+                    className="px-4 py-2.5 text-xs font-bold text-brand-charcoal/70 hover:text-brand-charcoal transition-colors cursor-pointer"
+                  >
+                    Fermer
+                  </button>
+                  <Link
+                    to="/test"
+                    className="px-5 py-2.5 bg-brand-charcoal hover:bg-brand-terracotta text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-sm shrink-0"
+                  >
+                    <Compass className="w-3.5 h-3.5 text-brand-ochre" />
+                    <span>Faire le test gratuit</span>
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </div>

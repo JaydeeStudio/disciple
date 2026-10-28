@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { cn } from '../lib/utils';
+import { triggerHaptic } from '../lib/haptics';
 
 const Test: React.FC = () => {
   const { 
@@ -34,6 +35,24 @@ const Test: React.FC = () => {
   const isLastQuestion = currentQuestionIndex === QUESTIONS.length - 1;
   const currentAnswer = answers[currentQuestion.id];
 
+  const [activeVip, setActiveVip] = useState<{ token: string; recipientName: string } | null>(null);
+
+  // Check for active VIP token on mount
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('disciple_active_vip');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setActiveVip(parsed);
+        if (parsed.recipientName) {
+          setFormName(parsed.recipientName);
+        }
+      }
+    } catch (e) {
+      console.warn("Erreur lecture VIP localStorage :", e);
+    }
+  }, []);
+
   // Scroll to top whenever question index changes
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -42,12 +61,14 @@ const Test: React.FC = () => {
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
     if (formName && formAge) {
+      triggerHaptic('medium');
       setUserData({ name: formName, gender: formGender, age: formAge });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleSelectOption = (index: number) => {
+    triggerHaptic('light');
     setAnswer(currentQuestion.id, index);
     
     // Auto-advance to next question after subtle feedback pause (except on final question)
@@ -69,7 +90,17 @@ const Test: React.FC = () => {
             className="bg-white p-10 md:p-14 rounded-[2rem] shadow-xl border border-brand-ochre/10"
           >
             <span className="text-brand-terracotta font-bold tracking-[0.2em] uppercase text-xs">Première étape</span>
-            <h2 className="font-display text-4xl mt-4 mb-8 text-brand-charcoal leading-tight">Mieux vous connaître</h2>
+            <h2 className="font-display text-4xl mt-4 mb-6 text-brand-charcoal leading-tight">Mieux vous connaître</h2>
+            
+            {activeVip && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200/80 rounded-2xl flex items-center gap-3">
+                <span className="text-xl">✨</span>
+                <div className="text-xs text-amber-950">
+                  <p className="font-bold uppercase tracking-wider text-[10px] text-amber-800">Invitation VIP Active</p>
+                  <p>Bienvenue <strong>{activeVip.recipientName}</strong> ! Votre dossier complet de 35 pages vous sera offert à l'issue de vos réponses.</p>
+                </div>
+              </div>
+            )}
             
             <form onSubmit={handleStart} className="space-y-6">
               <div>
@@ -128,6 +159,20 @@ const Test: React.FC = () => {
   const handleFinish = async () => {
     const calc = getFullCalculation();
     const archetypeKey = calc.primaryMatch.archetype.key;
+
+    // Persist latest test results locally for personalized PDF guide generation
+    try {
+      localStorage.setItem('disciple_latest_result', JSON.stringify({
+        archetypeKey,
+        answers,
+        userData,
+        calculation: calc,
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.warn("Impossible de sauvegarder dans le localStorage :", e);
+    }
+    triggerHaptic('success');
 
     if (!user) {
       navigate(`/resultats/${archetypeKey}`, { 

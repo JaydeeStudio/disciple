@@ -39,6 +39,22 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "archetypeKey", "consent", "createdAt"]
+    },
+    "VipToken": {
+      "title": "VipToken",
+      "description": "Single-use VIP invitation token allowing free access to the 35-page guide.",
+      "type": "object",
+      "properties": {
+        "token": { "type": "string", "maxLength": 64 },
+        "recipientName": { "type": "string", "maxLength": 100 },
+        "archetypeKey": { "type": "string", "maxLength": 50 },
+        "note": { "type": "string", "maxLength": 200 },
+        "used": { "type": "boolean" },
+        "useCount": { "type": "number" },
+        "usedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["token", "recipientName", "used", "useCount", "createdAt"]
     }
   },
   "firestore": {
@@ -53,6 +69,10 @@
     "leads/{leadId}": {
       "schema": "Lead",
       "description": "Captured newsletter and spiritual profile email leads."
+    },
+    "vipTokens/{tokenId}": {
+      "schema": "VipToken",
+      "description": "Single-use VIP magic link invitations."
     }
   }
 }

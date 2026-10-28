@@ -83,7 +83,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
                 <ul className="space-y-2 text-xs sm:text-sm">
                   <li className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-terracotta mt-2 shrink-0" />
-                    <span><strong>Usage exclusif :</strong> Votre e-mail sert uniquement à vous faire parvenir votre bilan spirituel et des réflexions inspirantes régulières.</span>
+                    <span><strong>Usage exclusif :</strong> Votre e-mail sert uniquement à vous faire parvenir votre synthèse de profil et des pistes d'analyse et de travail sur soi.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-terracotta mt-2 shrink-0" />

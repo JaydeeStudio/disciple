@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
 
           <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-brand-bg/50">
             <p>© {new Date().getFullYear()} — Tous droits réservés.</p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setPrivacyOpen(true)}
                 className="hover:text-brand-bg transition-colors cursor-pointer underline"

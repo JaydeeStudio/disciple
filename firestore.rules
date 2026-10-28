@@ -53,6 +53,16 @@ service cloud.firestore {
              data.keys().hasOnly(['email', 'archetypeKey', 'archetypeName', 'consent', 'source', 'createdAt']);
     }
 
+    function isValidVipToken(data) {
+      return data.token is string && data.token.size() >= 3 && data.token.size() <= 64 &&
+             data.recipientName is string && data.recipientName.size() <= 100 &&
+             data.used is bool &&
+             data.useCount is number &&
+             data.createdAt == request.time &&
+             data.keys().hasAll(['token', 'recipientName', 'used', 'useCount', 'createdAt']) &&
+             data.keys().hasOnly(['token', 'recipientName', 'archetypeKey', 'note', 'used', 'useCount', 'usedAt', 'usedBy', 'createdAt']);
+    }
+
     // --- Rules ---
 
     match /users/{userId} {
@@ -76,6 +86,22 @@ service cloud.firestore {
       allow create: if isValidLead(incoming());
       // Direct reading, listing and updating are blocked to protect user PII
       allow read, update, delete: if false;
+    }
+
+    match /vipTokens/{tokenId} {
+      // Anyone with the specific token ID can inspect it for redemption
+      allow get: if true;
+      // List tokens for administrative dashboard
+      allow list: if true;
+      // Token creation
+      allow create: if isValidVipToken(incoming()) && incoming().used == false && incoming().useCount == 0;
+      // Token redemption (single-use lock)
+      allow update: if existing().used == false &&
+                       incoming().used == true &&
+                       incoming().useCount == 1 &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['used', 'useCount', 'usedAt', 'usedBy']);
+      // Deletion allowed for admin cleanup
+      allow delete: if true;
     }
   }
 }
