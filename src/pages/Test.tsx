@@ -26,7 +26,8 @@ const Test: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formName, setFormName] = useState('');
+  const [formFirstName, setFormFirstName] = useState('');
+  const [formLastName, setFormLastName] = useState('');
   const [formGender, setFormGender] = useState<'M' | 'F' | 'OTHER'>('M');
   const [formAge, setFormAge] = useState('');
 
@@ -45,7 +46,13 @@ const Test: React.FC = () => {
         const parsed = JSON.parse(stored);
         setActiveVip(parsed);
         if (parsed.recipientName) {
-          setFormName(parsed.recipientName);
+          const parts = parsed.recipientName.trim().split(/\s+/);
+          if (parts.length > 1) {
+            setFormFirstName(parts[0]);
+            setFormLastName(parts.slice(1).join(' '));
+          } else {
+            setFormFirstName(parsed.recipientName);
+          }
         }
       }
     } catch (e) {
@@ -60,9 +67,16 @@ const Test: React.FC = () => {
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formName && formAge) {
+    const fullName = `${formFirstName.trim()} ${formLastName.trim()}`.trim();
+    if (fullName && formAge) {
       triggerHaptic('medium');
-      setUserData({ name: formName, gender: formGender, age: formAge });
+      setUserData({ 
+        name: fullName, 
+        firstName: formFirstName.trim(), 
+        lastName: formLastName.trim(), 
+        gender: formGender, 
+        age: formAge 
+      });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -97,22 +111,35 @@ const Test: React.FC = () => {
                 <span className="text-xl">✨</span>
                 <div className="text-xs text-amber-950">
                   <p className="font-bold uppercase tracking-wider text-[10px] text-amber-800">Invitation VIP Active</p>
-                  <p>Bienvenue <strong>{activeVip.recipientName}</strong> ! Votre dossier complet de 35 pages vous sera offert à l'issue de vos réponses.</p>
+                  <p>Bienvenue <strong>{activeVip.recipientName}</strong> ! Votre dossier complet de 36 pages vous sera offert à l'issue de vos réponses.</p>
                 </div>
               </div>
             )}
             
             <form onSubmit={handleStart} className="space-y-6">
-              <div>
-                <label className="block text-brand-charcoal/60 text-sm font-bold uppercase tracking-wider mb-2">Comment vous appelez-vous ?</label>
-                <input 
-                  type="text" 
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full bg-brand-bg border-2 border-brand-ochre/10 rounded-xl p-4 focus:border-brand-terracotta outline-none transition-all"
-                  placeholder="Votre prénom..."
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-brand-charcoal/60 text-sm font-bold uppercase tracking-wider mb-2">Prénom</label>
+                  <input 
+                    type="text" 
+                    value={formFirstName}
+                    onChange={(e) => setFormFirstName(e.target.value)}
+                    className="w-full bg-brand-bg border-2 border-brand-ochre/10 rounded-xl p-4 focus:border-brand-terracotta outline-none transition-all"
+                    placeholder="Ex: Jean"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-brand-charcoal/60 text-sm font-bold uppercase tracking-wider mb-2">Nom de famille</label>
+                  <input 
+                    type="text" 
+                    value={formLastName}
+                    onChange={(e) => setFormLastName(e.target.value)}
+                    className="w-full bg-brand-bg border-2 border-brand-ochre/10 rounded-xl p-4 focus:border-brand-terracotta outline-none transition-all"
+                    placeholder="Ex: Dupont"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

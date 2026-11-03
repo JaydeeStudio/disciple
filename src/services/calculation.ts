@@ -200,5 +200,5 @@ function generateSummaryText(archetype: Archetype, dimensions: Record<Dimension,
   const dom1 = topDimensions[0];
   const dom2 = topDimensions[1];
 
-  return `Votre profil spirituel se distingue particulièrement par une forte orientation vers ${dom1.dominantLabel} (${Math.max(dom1.leftPercent, dom1.rightPercent)}%) et ${dom2.dominantLabel} (${Math.max(dom2.leftPercent, dom2.rightPercent)}%). Cette harmonie correspond intimement au tempérament de ${archetype.name} : ${archetype.title.toLowerCase()}.`;
+  return `Votre profil de disciple se distingue particulièrement par une forte orientation vers ${dom1.dominantLabel} (${Math.max(dom1.leftPercent, dom1.rightPercent)}%) et ${dom2.dominantLabel} (${Math.max(dom2.leftPercent, dom2.rightPercent)}%). Cette harmonie correspond intimement au tempérament de ${archetype.name} : ${archetype.title.toLowerCase()}.`;
 }

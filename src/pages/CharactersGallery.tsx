@@ -109,7 +109,7 @@ const CharactersGallery: React.FC = () => {
             Galerie des 36 personnages bibliques
           </h1>
           <p className="text-brand-sage text-lg font-medium leading-relaxed">
-            Découvrez les 36 tempéraments spirituels de l'Ancien et du Nouveau Testament. Chaque personnage incarne un don unique et une facette vivante de l'action de Dieu.
+            Découvrez les 36 profils de disciples de l'Ancien et du Nouveau Testament. Chaque personnage incarne un don unique et une facette vivante de l'action de Dieu.
           </p>
         </div>
 
@@ -331,6 +331,31 @@ const CharactersGallery: React.FC = () => {
           })}
         </div>
 
+        {/* Call to action - Passer le test pour découvrir son profil */}
+        {filteredArchetypes.length > 0 && (
+          <div className="mt-16 text-center bg-white border border-brand-ochre/15 p-8 md:p-12 rounded-[2.5rem] shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-ochre/15 text-brand-terracotta text-xs font-bold tracking-wide mb-4">
+              <Compass className="w-4 h-4 text-brand-terracotta" />
+              <span>Découvrez votre résonance biblique</span>
+            </div>
+            <h3 className="font-display text-2xl md:text-3xl text-brand-charcoal mb-4">
+              Prêt(e) à découvrir avec quelle figure biblique votre cœur résonne le plus ?
+            </h3>
+            <p className="text-brand-charcoal/70 max-w-xl mx-auto mb-8 text-sm md:text-base font-medium leading-relaxed">
+              20 questions immersives pour révéler votre disciple dominant parmi les 36 figures de l'Ancien et du Nouveau Testament.
+            </p>
+            <div className="flex justify-center">
+              <Link
+                to="/test"
+                className="px-8 py-4 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                <Compass className="w-5 h-5 text-brand-ochre" />
+                <span>Commencer le test maintenant</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {filteredArchetypes.length === 0 && (
           <div className="text-center py-20 bg-white rounded-3xl border border-brand-ochre/15 p-8">
             <BookOpen className="w-12 h-12 text-brand-ochre/40 mx-auto mb-4" />
@@ -491,7 +516,7 @@ const CharactersGallery: React.FC = () => {
                     Vous vous reconnaissez dans le tempérament de {activeModalArchetype.name} ?
                   </p>
                   <p className="text-[11px] text-brand-charcoal/60">
-                    Faites le test gratuit (3 minutes) pour évaluer votre affinité personnelle.
+                    Faites le test gratuit (5 minutes) pour évaluer votre affinité personnelle.
                   </p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">

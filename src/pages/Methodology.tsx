@@ -21,7 +21,7 @@ import { cn } from '../lib/utils';
 
 interface FAQItem {
   question: string;
-  answer: string;
+  answer: React.ReactNode;
 }
 
 const FAQ_LIST: FAQItem[] = [
@@ -34,7 +34,7 @@ const FAQ_LIST: FAQItem[] = [
     answer: "Les 36 figures ont été rigoureusement choisies pour représenter la diversité du peuple de Dieu : 18 hommes et 18 femmes, répartis équitablement entre l'Ancien et le Nouveau Testament. Chaque profil a été modélisé à partir de ses réactions documentées dans la Bible face au conflit, à la mission, à l'injustice, au doute et à la prière."
   },
   {
-    question: "Mon profil spirituel peut-il évoluer avec les années ?",
+    question: "Mon profil de disciple peut-il évoluer avec les années ?",
     answer: "Oui, absolument. Même si notre tempérament naturel comporte un socle stable, les saisons de vie, les épreuves et surtout l'action sanctifiante de l'Esprit Saint transforment notre cœur. Un disciple impulsif comme Pierre mûrit avec le temps en un pasteur plein de patience et de douceur. Vous pouvez tout à fait refaire le test au fil de votre parcours."
   },
   {
@@ -47,12 +47,39 @@ const FAQ_LIST: FAQItem[] = [
   },
   {
     question: "Comment utiliser ces résultats dans un groupe de maison ou une équipe de service ?",
-    answer: "C'est un support remarquable pour désamorcer les incompréhensions fraternelles. Il aide à comprendre pourquoi une personne portée sur la vérité et les principes peut involontairement blesser un profil centré sur l'accueil et la grâce, et montre comment ces deux frères ou sœurs ont besoin l'un de l'autre pour construire une communauté équilibrée."
+    answer: (
+      <span>
+        C'est un support remarquable pour désamorcer les incompréhensions fraternelles. Il aide à comprendre pourquoi une personne portée sur la vérité et les principes peut involontairement blesser un profil centré sur l'accueil et la grâce, et montre comment ces deux frères ou sœurs ont besoin l'un de l'autre pour construire une communauté équilibrée.
+        <span className="block mt-2.5">
+          <Link
+            to="/kit-communaute"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-terracotta hover:underline"
+          >
+            <span>Découvrir notre Kit d'animation pour groupes & équipes →</span>
+          </Link>
+        </span>
+      </span>
+    )
   }
 ];
 
 const Methodology: React.FC = () => {
-  const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(0);
+  const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
+
+  React.useEffect(() => {
+    const handleScrollToFaq = () => {
+      if (window.location.hash === '#faq') {
+        setTimeout(() => {
+          const el = document.getElementById('faq');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    };
+
+    handleScrollToFaq();
+    window.addEventListener('hashchange', handleScrollToFaq);
+    return () => window.removeEventListener('hashchange', handleScrollToFaq);
+  }, []);
 
   const toggleFAQ = (index: number) => {
     setOpenFAQIndex(openFAQIndex === index ? null : index);
@@ -71,7 +98,7 @@ const Methodology: React.FC = () => {
             Comment sont calculés vos résultats ?
           </h1>
           <p className="text-brand-sage text-lg font-medium leading-relaxed">
-            Une approche transparente alliant fidélité aux Écritures, psychométrie des tempéraments et mesure bienveillante de votre sensibilité spirituelle.
+            Une approche transparente alliant fidélité aux Écritures, psychométrie des tempéraments et mesure bienveillante de votre posture de disciple.
           </p>
         </div>
 
@@ -294,8 +321,34 @@ const Methodology: React.FC = () => {
           </div>
         </section>
 
+        {/* Call to Action - Découvrir le profil */}
+        <div className="text-center bg-white border border-brand-ochre/15 p-8 md:p-12 rounded-[2.5rem] shadow-sm mb-16">
+          <h3 className="font-display text-2xl md:text-3xl text-brand-charcoal mb-4">
+            Prêt(e) à découvrir votre profil de disciple ?
+          </h3>
+          <p className="text-brand-charcoal/70 max-w-xl mx-auto mb-8 text-sm md:text-base font-medium">
+            20 questions immersives pour révéler quel disciple ou figure biblique résonne le plus avec votre cœur.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              to="/test"
+              className="px-8 py-4 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Compass className="w-5 h-5" />
+              Commencer le test maintenant
+            </Link>
+            <Link
+              to="/personnages"
+              className="px-8 py-4 bg-brand-bg hover:bg-brand-ochre/20 text-brand-charcoal font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              <BookOpen className="w-5 h-5" />
+              Explorer les 36 personnages
+            </Link>
+          </div>
+        </div>
+
         {/* Section 4: Interactive FAQ Section */}
-        <section className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm">
+        <section id="faq" className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm scroll-mt-28">
           <div className="flex items-center gap-3 mb-4">
             <MessageCircleQuestion className="w-6 h-6 text-brand-ochre" />
             <span className="text-xs font-bold uppercase tracking-widest text-brand-ochre">
@@ -348,32 +401,6 @@ const Methodology: React.FC = () => {
             })}
           </div>
         </section>
-
-        {/* Bottom CTA */}
-        <div className="text-center bg-white border border-brand-ochre/15 p-12 rounded-[2.5rem] shadow-sm">
-          <h3 className="font-display text-3xl text-brand-charcoal mb-4">
-            Prêt(e) à découvrir votre tempérament spirituel ?
-          </h3>
-          <p className="text-brand-charcoal/70 max-w-xl mx-auto mb-8 font-medium">
-            20 questions immersives pour révéler quel disciple ou figure biblique résonne le plus avec votre cœur.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/test"
-              className="px-8 py-4 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
-            >
-              <Compass className="w-5 h-5" />
-              Commencer le test maintenant
-            </Link>
-            <Link
-              to="/personnages"
-              className="px-8 py-4 bg-brand-bg hover:bg-brand-ochre/20 text-brand-charcoal font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-            >
-              <BookOpen className="w-5 h-5" />
-              Explorer les 36 personnages
-            </Link>
-          </div>
-        </div>
 
       </div>
     </div>

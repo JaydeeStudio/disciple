@@ -17,3 +17,43 @@
     @apply bg-[var(--color-brand-bg)] text-[var(--color-brand-charcoal)] font-sans antialiased;
   }
 }
+
+@media print {
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+  
+  /* Hide typical web layout elements when printing */
+  nav, footer, .no-print, [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Make sure print container expands cleanly across pages */
+  .print-clean, .print-clean * {
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  .print-clean {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+
+  @page {
+    margin: 1.2cm;
+    size: portrait;
+  }
+}
+

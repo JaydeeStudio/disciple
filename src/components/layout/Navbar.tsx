@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, User, Menu, X, BookOpen, Calculator, Compass } from 'lucide-react';
+import { LogOut, User, Menu, X, BookOpen, Calculator, Compass, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 
@@ -68,21 +68,8 @@ const Navbar: React.FC = () => {
           </div>
         </Link>
         
-        {/* Desktop Navigation Links - Always single line, with comfortable spacing */}
+        {/* Desktop Navigation Links - Clean, non-redundant */}
         <div className="hidden md:flex items-center gap-6 lg:gap-8 flex-nowrap">
-          <Link 
-            to="/test" 
-            className={cn(
-              "text-xs lg:text-sm font-bold transition-all flex items-center gap-2 px-3.5 py-1.5 rounded-xl whitespace-nowrap shrink-0",
-              location.pathname === '/test' 
-                ? "bg-brand-terracotta text-white shadow-sm" 
-                : "text-brand-charcoal hover:text-brand-terracotta hover:bg-brand-ochre/10"
-            )}
-          >
-            <Compass className="w-4 h-4 shrink-0" />
-            <span>Faire le test</span>
-          </Link>
-
           <Link 
             to="/personnages" 
             className={cn(
@@ -93,7 +80,20 @@ const Navbar: React.FC = () => {
             )}
           >
             <BookOpen className="w-4 h-4 text-brand-ochre shrink-0" />
-            <span>36 personnages</span>
+            <span>36 figures bibliques</span>
+          </Link>
+
+          <Link 
+            to="/kit-communaute" 
+            className={cn(
+              "text-xs lg:text-sm font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0",
+              location.pathname === '/kit-communaute' 
+                ? "text-brand-terracotta" 
+                : "text-brand-charcoal hover:text-brand-terracotta"
+            )}
+          >
+            <Users className="w-4 h-4 text-brand-terracotta shrink-0" />
+            <span>Kit groupes</span>
           </Link>
 
           <Link 
@@ -105,7 +105,7 @@ const Navbar: React.FC = () => {
                 : "text-brand-charcoal hover:text-brand-terracotta"
             )}
           >
-            <Calculator className="w-4 h-4 text-brand-sage shrink-0" />
+            <Calculator className="w-4 h-4 text-brand-ochre shrink-0" />
             <span>Méthodologie</span>
           </Link>
         </div>
@@ -177,7 +177,7 @@ const Navbar: React.FC = () => {
                 <Compass className="w-4 h-4 text-brand-ochre" />
                 Faire le test
               </span>
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white/90">36 questions</span>
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white/90">20 questions</span>
             </Link>
 
             <Link 
@@ -192,12 +192,23 @@ const Navbar: React.FC = () => {
             </Link>
 
             <Link 
+              to="/kit-communaute" 
+              onClick={() => setIsOpen(false)} 
+              className="py-2.5 px-3 text-sm font-medium text-brand-charcoal hover:bg-brand-bg rounded-lg flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-brand-terracotta" />
+                Kit groupes
+              </span>
+            </Link>
+
+            <Link 
               to="/methodologie" 
               onClick={() => setIsOpen(false)} 
               className="py-2.5 px-3 text-sm font-medium text-brand-charcoal hover:bg-brand-bg rounded-lg flex items-center gap-2"
             >
-              <Calculator className="w-4 h-4 text-brand-sage" />
-              <span>Méthodologie & calcul</span>
+              <Calculator className="w-4 h-4 text-brand-ochre" />
+              <span>Méthodologie</span>
             </Link>
 
             {user && (

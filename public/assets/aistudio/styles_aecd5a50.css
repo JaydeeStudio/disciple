@@ -1,0 +1,145 @@
+/* 1. Palette et base typographique */
+:root {
+  color-scheme: light;
+  --paper: #fbf8f1;
+  --ink: #25211e;
+  --muted: #76716b;
+  --terracotta: #ca5437;
+  --sage: #5d7564;
+  --rule: #e6dacb;
+  --badge-fill: #faece5;
+  --badge-border: #f0cdbf;
+  --sans: Arial, Helvetica, sans-serif;
+  --serif: "Times New Roman", Times, serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+p, h1, figure, blockquote { margin: 0; }
+.document { width: 100%; max-width: 1447px; margin-inline: auto; container-type: inline-size; }
+
+/* 2. Couverture : une unité correspond à un pixel de la référence à 1447 px.
+   Les unités de conteneur maintiennent les proportions sur écran intermédiaire. */
+.cover {
+  --u: calc(100cqi / 1447);
+  min-height: calc(2048 * var(--u));
+  padding-top: calc(93 * var(--u));
+  padding-bottom: calc(80 * var(--u));
+  text-align: center;
+}
+.document-header {
+  width: 79.13%;
+  margin-inline: auto;
+  padding-bottom: calc(22 * var(--u));
+  border-bottom: calc(2 * var(--u)) solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: calc(20 * var(--u));
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+.recipient { font-weight: 700; }
+.document-header time { color: var(--muted); }
+
+/* 3. Bandeau et présentation */
+.edition { width: 79.13%; margin: calc(106 * var(--u)) auto 0; }
+.edition-badge {
+  min-height: calc(98 * var(--u));
+  padding: calc(28 * var(--u)) calc(28 * var(--u)) calc(20 * var(--u));
+  border: calc(4 * var(--u)) solid var(--badge-border);
+  border-radius: 999px;
+  background: var(--badge-fill);
+  color: var(--terracotta);
+  font-size: calc(34 * var(--u));
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.edition-description {
+  margin-top: calc(30 * var(--u));
+  font-size: calc(40 * var(--u));
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+/* 4. Illustration conservée sans déformation */
+.portrait { width: 36.63%; margin: calc(157 * var(--u)) auto 0; }
+.portrait img { display: block; width: 100%; height: auto; }
+
+/* 5. Hiérarchie du profil */
+.profile { margin-top: calc(143 * var(--u)); }
+.profile-label {
+  color: var(--terracotta);
+  font-size: calc(32 * var(--u));
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+h1 {
+  margin-top: calc(49 * var(--u));
+  font-family: var(--serif);
+  font-size: calc(144 * var(--u));
+  font-weight: 700;
+  line-height: 1.05;
+}
+.profile-subtitle {
+  margin-top: calc(38 * var(--u));
+  color: var(--sage);
+  font-family: var(--serif);
+  font-size: calc(54 * var(--u));
+  font-style: italic;
+  line-height: 1.2;
+}
+
+/* 6. Citation et signature */
+.quotation {
+  width: 94%;
+  margin: calc(103 * var(--u)) auto 0;
+  font-family: var(--serif);
+  font-size: calc(36 * var(--u));
+  font-style: italic;
+  line-height: 1.4;
+}
+.quotation::before {
+  content: "";
+  display: block;
+  width: 35.2%;
+  margin: 0 auto calc(77 * var(--u));
+  border-top: calc(4 * var(--u)) solid var(--rule);
+}
+.quotation cite { font-style: inherit; }
+.document-footer {
+  margin: calc(85 * var(--u)) auto 0;
+  color: var(--muted);
+  font-size: calc(24 * var(--u));
+  line-height: 1.3;
+}
+.document-footer a { color: inherit; text-decoration: none; }
+.document-footer a:hover { text-decoration: underline; }
+.document-footer a:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 5px; }
+
+/* 7. Petits écrans : conserver la composition avec des textes lisibles */
+@media (max-width: 600px) {
+  .cover { min-height: 100svh; padding: 28px 20px 32px; }
+  .document-header { width: 100%; gap: 12px; padding-bottom: 15px; font-size: 11px; border-width: 1px; }
+  .edition { width: 100%; margin-top: 42px; }
+  .edition-badge { min-height: 0; padding: 14px 18px; font-size: 15px; line-height: 1.4; border-width: 2px; }
+  .edition-description { margin-top: 18px; font-size: 20px; line-height: 1.4; }
+  .portrait { width: min(72%, 300px); margin-top: 42px; }
+  .profile { margin-top: 42px; }
+  .profile-label { font-size: 17px; }
+  h1 { margin-top: 22px; font-size: 82px; }
+  .profile-subtitle { margin-top: 20px; font-size: 31px; }
+  .quotation { width: 100%; margin-top: 42px; font-size: 21px; }
+  .quotation::before { width: 45%; margin-bottom: 32px; border-width: 2px; }
+  .document-footer { margin-top: 38px; font-size: 13px; }
+}
+
+/* 8. Impression A4, sans éléments d’interface ajoutés */
+@page { size: A4; margin: 0; }
+@media print {
+  body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .document { width: 210mm; max-width: none; }
+  .cover { break-inside: avoid; }
+}

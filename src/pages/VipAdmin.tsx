@@ -13,6 +13,7 @@ import {
   AlertCircle,
   ArrowLeft,
   RefreshCw,
+  Mail,
   Gift,
   CheckCircle2,
   HelpCircle,
@@ -26,6 +27,9 @@ import {
   VipTokenData 
 } from '../services/vipService';
 import { triggerHaptic } from '../lib/haptics';
+import { generateCompleteGuidePdf } from '../services/completeGuidePdfGenerator';
+import { generateFreeSynthesisPdf } from '../services/freeSynthesisPdfGenerator';
+import { computeDimensionResults } from '../services/calculation';
 
 // Default administration passcode (can be overridden via VITE_ADMIN_PASSCODE)
 const DEFAULT_PASSCODE = 
@@ -52,6 +56,60 @@ const VipAdmin: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [showPasscodeHelp, setShowPasscodeHelp] = useState<boolean>(false);
+
+  // PDF Preview states
+  const [testArchetype, setTestArchetype] = useState<string>('jean');
+  const [testName, setTestName] = useState<string>('Jean Dupont');
+  const [downloadingGuideAdmin, setDownloadingGuideAdmin] = useState<boolean>(false);
+  const [downloadingSynthAdmin, setDownloadingSynthAdmin] = useState<boolean>(false);
+
+  const handleAdminDownloadGuide = async () => {
+    setDownloadingGuideAdmin(true);
+    triggerHaptic('medium');
+    try {
+      const arch = ARCHETYPES[testArchetype] || ARCHETYPES.jean;
+      const doc = await generateCompleteGuidePdf({
+        userName: testName || 'Jean Dupont',
+        archetype: arch,
+        affinity: 94,
+        dimensions: computeDimensionResults(arch.coordinates),
+        rawScores: arch.coordinates,
+        secondaryMatches: [],
+      });
+      const safe = (testName || 'Disciple').replace(/\s+/g, '_');
+      doc.save(`Guide_Complet_36_Pages_${arch.name}_${safe}.pdf`);
+      triggerHaptic('success');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloadingGuideAdmin(false);
+    }
+  };
+
+  const handleAdminDownloadSynth = async () => {
+    setDownloadingSynthAdmin(true);
+    triggerHaptic('medium');
+    try {
+      const arch = ARCHETYPES[testArchetype] || ARCHETYPES.jean;
+      await generateFreeSynthesisPdf({
+        archetype: arch,
+        participantName: testName || 'Jean Dupont',
+        affinity: 94,
+        dimensions: {
+          interiorite: 75,
+          soumission: 65,
+          verite: 80,
+          lettre: 40,
+          reforme: 60
+        }
+      });
+      triggerHaptic('success');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloadingSynthAdmin(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -156,7 +214,7 @@ const VipAdmin: React.FC = () => {
             Espace d'Administration
           </h1>
           <p className="text-xs text-brand-charcoal/60 mb-6">
-            Gestion confidentielle des invitations VIP à usage unique (dossier 35 pages offert).
+            Gestion confidentielle des invitations VIP à usage unique (dossier 36 pages offert).
           </p>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -222,6 +280,13 @@ const VipAdmin: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/apercu-email"
+              className="px-3 py-2 bg-white border border-brand-ochre/20 text-xs font-medium text-brand-charcoal/70 hover:text-brand-terracotta rounded-xl transition-colors flex items-center gap-1.5"
+            >
+              <Mail className="w-3.5 h-3.5 text-brand-terracotta" />
+              <span>Aperçu E-mail</span>
+            </Link>
             <button
               onClick={() => setShowPasscodeHelp(!showPasscodeHelp)}
               className="px-3 py-2 bg-white border border-brand-ochre/20 text-xs font-medium text-brand-charcoal/70 hover:text-brand-ochre rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -305,6 +370,95 @@ const VipAdmin: React.FC = () => {
           </div>
         </div>
 
+        {/* PDF Direct Generation & Test Sandbox */}
+        <div className="bg-gradient-to-br from-[#1f1c19] via-[#292420] to-[#1f1c19] text-white rounded-3xl p-6 sm:p-8 border border-brand-ochre/30 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="px-3 py-1 rounded-full bg-brand-ochre/20 text-brand-ochre border border-brand-ochre/30 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Laboratoire de Test & Prévisualisation PDF</span>
+              </span>
+              <h2 className="text-2xl font-display text-white">
+                Génération directe des documents PDF
+              </h2>
+              <p className="text-xs sm:text-sm text-white/70 mt-1">
+                Testez et inspectez le rendu du dossier complet de 36 pages ou de la synthèse offerte de 3 pages pour n'importe quel profil.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end mb-6">
+            <div className="sm:col-span-5">
+              <label className="text-xs font-semibold text-white/80 block mb-1.5">
+                Prénom et Nom sur le document :
+              </label>
+              <input
+                type="text"
+                value={testName}
+                onChange={(e) => setTestName(e.target.value)}
+                placeholder="Ex: Jean Dupont"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-brand-ochre"
+              />
+            </div>
+
+            <div className="sm:col-span-7">
+              <label className="text-xs font-semibold text-white/80 block mb-1.5">
+                Archétype biblique à tester :
+              </label>
+              <select
+                value={testArchetype}
+                onChange={(e) => setTestArchetype(e.target.value)}
+                className="w-full bg-[#2a2622] border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-ochre"
+              >
+                {Object.values(ARCHETYPES).map((arch) => (
+                  <option key={arch.key} value={arch.key} className="bg-[#24201d] text-white">
+                    {arch.name} — {arch.title} ({arch.gender === 'F' ? 'Femme' : 'Homme'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-white/10">
+            <button
+              type="button"
+              onClick={handleAdminDownloadGuide}
+              disabled={downloadingGuideAdmin}
+              className="px-5 py-3 bg-brand-ochre hover:bg-[#c28e46] text-brand-charcoal font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-60"
+            >
+              {downloadingGuideAdmin ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-brand-charcoal border-t-transparent rounded-full animate-spin" />
+                  <span>Génération du guide 36 pages...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>📄 Télécharger le Guide Complet (36 pages PDF)</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAdminDownloadSynth}
+              disabled={downloadingSynthAdmin}
+              className="px-5 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
+            >
+              {downloadingSynthAdmin ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <span>Génération de la synthèse...</span>
+                </>
+              ) : (
+                <>
+                  <span>📑 Télécharger la Synthèse Offerte (3 pages PDF)</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* Link Creation Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-ochre/20 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
@@ -316,7 +470,7 @@ const VipAdmin: React.FC = () => {
                 Créer un nouveau Lien Magique VIP
               </h2>
               <p className="text-xs text-brand-charcoal/60">
-                L'invité passe le test ou accède directement au guide complet de 35 pages sans payer. Le lien se scelle automatiquement après le premier téléchargement.
+                L'invité passe le test ou accède directement au guide complet de 36 pages sans payer. Le lien se scelle automatiquement après le premier téléchargement.
               </p>
             </div>
           </div>

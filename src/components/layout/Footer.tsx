@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Cookie } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 import { PrivacyModal } from '../PrivacyModal';
 
 export const Footer: React.FC = () => {
@@ -14,20 +14,30 @@ export const Footer: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-xs font-semibold mb-6 text-brand-bg/90">
             <Link to="/test" className="hover:text-white transition-colors">Faire le test</Link>
             <Link to="/personnages" className="hover:text-white transition-colors">Les 36 personnages</Link>
-            <Link to="/methodologie" className="hover:text-white transition-colors">Méthodologie de calcul</Link>
+            <Link to="/kit-communaute" className="hover:text-white transition-colors">Kit groupes</Link>
+            <Link to="/methodologie" className="hover:text-white transition-colors">Méthodologie</Link>
+            <Link 
+              to="/methodologie#faq" 
+              onClick={() => {
+                const el = document.getElementById('faq');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              FAQ
+            </Link>
             <button
               onClick={() => setPrivacyOpen(true)}
-              className="hover:text-white transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-terracotta" />
-              <span>Vie privée & RGPD</span>
+              Vie privée & RGPD
             </button>
           </div>
 
           <div className="mb-4">
             <p className="font-display text-xl text-white tracking-wide">Quel disciple suis-je ?</p>
             <p className="text-xs text-brand-bg/60 max-w-md mx-auto mt-1 leading-relaxed">
-              Une exploration scripturaire des tempéraments spirituels pour encourager la croissance personnelle et l'édification mutuelle.
+              Une exploration scripturaire des profils de disciples pour encourager la croissance personnelle et l'édification mutuelle.
             </p>
           </div>
 

@@ -8,6 +8,8 @@ import {
 
 export interface UserData {
   name: string;
+  firstName?: string;
+  lastName?: string;
   gender: 'M' | 'F' | 'OTHER';
   age: string;
 }

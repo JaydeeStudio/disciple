@@ -10,6 +10,9 @@ import CharactersGallery from './pages/CharactersGallery';
 import Methodology from './pages/Methodology';
 import OrderSuccess from './pages/OrderSuccess';
 import VipAdmin from './pages/VipAdmin';
+import EmailPreview from './pages/EmailPreview';
+import GroupKit from './pages/GroupKit';
+import OutreachToolkit from './pages/OutreachToolkit';
 import Navbar from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AnimatePresence } from 'motion/react';
@@ -76,6 +79,12 @@ function App() {
                   <Route path="/guide-complet-telechargement" element={<OrderSuccess />} />
                   <Route path="/admin" element={<VipAdmin />} />
                   <Route path="/admin-vip" element={<VipAdmin />} />
+                  <Route path="/apercu-email" element={<EmailPreview />} />
+                  <Route path="/email-preview" element={<EmailPreview />} />
+                  <Route path="/kit-communaute" element={<GroupKit />} />
+                  <Route path="/guide-groupe" element={<GroupKit />} />
+                  <Route path="/kit-communication" element={<OutreachToolkit />} />
+                  <Route path="/outreach" element={<OutreachToolkit />} />
                 </Routes>
               </AnimatePresence>
             </div>

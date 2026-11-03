@@ -6,17 +6,25 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 interface EmailCaptureCardProps {
   archetypeKey: string;
   archetypeName: string;
+  archetypeTitle?: string;
+  biblicalVerse?: string;
+  userName?: string;
   affinity?: number;
   onOpenPrivacy: () => void;
   onDownloadPDF?: () => void;
+  isDownloadingPDF?: boolean;
 }
 
 export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
   archetypeKey,
   archetypeName,
+  archetypeTitle,
+  biblicalVerse,
+  userName,
   affinity = 94,
   onOpenPrivacy,
   onDownloadPDF,
+  isDownloadingPDF = false,
 }) => {
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
@@ -83,6 +91,9 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
           email: trimmedEmail,
           archetypeKey,
           archetypeName,
+          archetypeTitle,
+          biblicalVerse,
+          userName,
           affinity,
           siteUrl: window.location.origin
         })
@@ -92,7 +103,7 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
         const data = await response.json();
         if (data.success) {
           setEmailSentStatus('sent');
-        } else if (data.warning === 'RESEND_API_KEY_MANQUANTE') {
+        } else if (data.warning === 'RESEND_API_KEY_MANQUANTE' || data.warning === 'CONFIG_EMAIL_MANQUANTE') {
           setEmailSentStatus('pending_key');
         } else {
           setEmailSentStatus('saved');
@@ -106,6 +117,9 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
             email: trimmedEmail,
             archetypeKey,
             archetypeName,
+            archetypeTitle,
+            biblicalVerse,
+            userName,
             affinity,
             siteUrl: window.location.origin
           })
@@ -145,7 +159,7 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
             </>
           ) : emailSentStatus === 'pending_key' ? (
             <>
-              Votre adresse <span className="font-bold text-brand-charcoal">{email}</span> est sauvegardée. Pour activer l'envoi d'e-mails automatique en production, pensez à renseigner votre clé <code className="bg-amber-100 text-amber-800 px-1 py-0.5 rounded text-xs">RESEND_API_KEY</code> sur votre tableau de bord Netlify.
+              Votre adresse <span className="font-bold text-brand-charcoal">{email}</span> est sauvegardée. Pour activer l'envoi direct depuis votre adresse Gmail, ajoutez simplement votre <code className="bg-amber-100 text-amber-800 px-1 py-0.5 rounded text-xs font-mono font-semibold">GMAIL_APP_PASSWORD</code> dans les variables d'environnement de Netlify.
             </>
           ) : (
             <>
@@ -158,10 +172,20 @@ export const EmailCaptureCard: React.FC<EmailCaptureCardProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
             <button
               onClick={onDownloadPDF}
-              className="px-6 py-3 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              disabled={isDownloadingPDF}
+              className="px-6 py-3 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-60"
             >
-              <Download className="w-4 h-4 text-brand-ochre" />
-              <span>Télécharger ma synthèse de profil (PDF)</span>
+              {isDownloadingPDF ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-brand-ochre animate-spin" />
+                  <span>Génération de votre synthèse PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-brand-ochre" />
+                  <span>Télécharger ma synthèse de profil (PDF)</span>
+                </>
+              )}
             </button>
           </div>
         )}

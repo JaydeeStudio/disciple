@@ -113,6 +113,29 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Features : Identité, Lucidité, Complémentarité */}
+      <section id="about" className="py-16 bg-brand-bg/40 border-b border-brand-ochre/10">
+        <div className="container mx-auto px-6 max-w-5xl">
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<Heart className="w-8 h-8 text-brand-terracotta" />}
+              title="Identité"
+              description="Arrêtez de vouloir être David quand Dieu vous a façonné davantage comme Nathan ou Barnabas. Embrassez votre tempérament."
+            />
+            <FeatureCard 
+              icon={<Shield className="w-8 h-8 text-brand-sage" />}
+              title="Lucidité"
+              description="Identifiez vos forces et vos zones de vigilance pour marcher avec plus de lucidité et de dépendance à la grâce divine."
+            />
+            <FeatureCard 
+              icon={<Users className="w-8 h-8 text-brand-ochre" />}
+              title="Complémentarité"
+              description="Comprenez comment vous collaborez avec les autres archétypes pour bâtir ensemble le Corps de Christ harmonieusement."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Character Preview Grid */}
       <section className="py-20 bg-[#fdfaf5]">
         <div className="container mx-auto px-6 max-w-6xl">
@@ -216,25 +239,37 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="about" className="py-20 bg-brand-bg/40 border-t border-brand-ochre/10">
+      {/* Community & Church Group Kit Teaser (tout en bas) */}
+      <section className="py-14 bg-gradient-to-b from-white to-[#fdfaf5] border-t border-brand-ochre/15">
         <div className="container mx-auto px-6 max-w-5xl">
-          <div className="grid md:grid-cols-3 gap-12">
-            <FeatureCard 
-              icon={<Heart className="w-8 h-8 text-brand-terracotta" />}
-              title="Identité"
-              description="Arrêtez de vouloir être David quand Dieu vous a façonné davantage comme Nathan ou Barnabas. Embrassez votre tempérament."
-            />
-            <FeatureCard 
-              icon={<Shield className="w-8 h-8 text-brand-sage" />}
-              title="Lucidité"
-              description="Identifiez vos forces et vos zones de vigilance pour marcher avec plus de lucidité et de dépendance à la grâce divine."
-            />
-            <FeatureCard 
-              icon={<Users className="w-8 h-8 text-brand-ochre" />}
-              title="Complémentarité"
-              description="Comprenez comment vous collaborez avec les autres archétypes pour bâtir ensemble le Corps de Christ harmonieusement."
-            />
+          <div className="bg-white rounded-3xl border border-brand-ochre/25 p-8 sm:p-10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-brand-charcoal text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Users className="w-7 h-7 text-brand-ochre" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-ochre/15 text-brand-terracotta text-[10px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Ressource offerte</span>
+                </span>
+                <h3 className="font-display text-2xl sm:text-3xl text-brand-charcoal mb-2">
+                  Vous animez un groupe de prière ou une paroisse ?
+                </h3>
+                <p className="text-xs sm:text-sm text-brand-charcoal/70 leading-relaxed max-w-xl">
+                  Découvrez notre Kit d'animation complet de 45 minutes pour révéler la diversité des tempéraments bibliques dans votre communauté, susciter des échanges profonds et valoriser la complémentarité des dons.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+              <Link
+                to="/kit-communaute"
+                className="w-full sm:w-auto px-7 py-3.5 bg-brand-terracotta hover:bg-[#a0522f] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 text-center"
+              >
+                <span>Accéder au Kit groupes</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -243,9 +278,9 @@ const Home: React.FC = () => {
 };
 
 const FeatureCard: React.FC<{ icon: React.ReactNode; title: string, description: string }> = ({ icon, title, description }) => (
-  <div className="flex flex-col items-start text-left bg-white p-8 rounded-2xl border border-brand-ochre/15 shadow-sm">
-    <div className="mb-6">{icon}</div>
-    <h3 className="font-display text-2xl mb-3 text-brand-charcoal">{title}</h3>
+  <div className="flex flex-col items-start text-left bg-white p-8 rounded-2xl border border-brand-ochre/15 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md hover:border-brand-terracotta/40 cursor-default group">
+    <div className="mb-6 transition-transform duration-300 group-hover:scale-110">{icon}</div>
+    <h3 className="font-display text-2xl mb-3 text-brand-charcoal group-hover:text-brand-terracotta transition-colors">{title}</h3>
     <p className="text-brand-charcoal/70 leading-relaxed font-medium text-sm">{description}</p>
   </div>
 );
