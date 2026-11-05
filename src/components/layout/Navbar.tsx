@@ -152,14 +152,15 @@ const Navbar: React.FC = () => {
     }, 180);
   };
 
-  // Helper to handle anchor jump if already on the target page
+  // Helper to handle anchor jump both when already on the page or when changing page
   const handleAnchorClick = (href: string) => {
     setActiveDropdown(null);
+    setIsOpen(false);
     const [path, hash] = href.split('#');
     if (hash && location.pathname === path) {
       const el = document.getElementById(hash);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };

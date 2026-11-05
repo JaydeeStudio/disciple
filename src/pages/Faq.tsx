@@ -85,13 +85,13 @@ const FAQ_DATA: FaqItem[] = [
     id: 'securite-etalonnage',
     category: 'guide',
     question: "Pourquoi le paiement est-il suspendu si j'accède directement à une page sans avoir passé le test ?",
-    answer: "Pour protéger votre démarche et vous garantir un document 100% personnalisé. Le Dossier d'approfondissement de 36 pages n'est pas un livret générique vendu au hasard : il est calculé de manière unique à partir de vos réponses (roue polaire des 8 énergies, matrice d'évitement, binômes fraternels et cartographie). Si vous arrivez directement sur une page sans étalonnage, le paiement est bloqué afin de ne jamais vous faire payer un document non calibré. Passez simplement le test gratuit en 5 minutes pour étalonner votre profil."
+    answer: "Pour protéger votre démarche et vous garantir un document 100% personnalisé. Le Dossier d'approfondissement de 36 pages n'est pas un livret générique : il est calculé de manière unique à partir de vos réponses (profil comportemental, réactions sous pression, forces motrices et alliances fraternelles). Si vous arrivez directement sur une page sans avoir complété le questionnaire, le paiement est bloqué afin de ne jamais vous faire payer un document non calibré. Passez simplement le test gratuit en 5 minutes pour étalonner votre profil."
   },
   {
     id: 'contenu-dossier-36',
     category: 'guide',
     question: "Que contient exactement le Dossier d'approfondissement personnel de 36 pages (19 €) ?",
-    answer: "Ce livret exhaustif haute définition est entièrement personnalisé à partir de vos 30 réponses. Il comprend : votre roue radar polaire des 8 énergies spirituelles, votre dynamique sous stress et vos évitements instinctifs, l'analyse approfondie de vos archétypes secondaires, vos 3 binômes d'alliance fraternelle (avec qui vous vous complétez le mieux et comment désamorcer les frictions), votre feuille de route spirituelle sur mesure et votre planche bilan cartographique."
+    answer: "Ce livret complet haute définition est entièrement personnalisé à partir de vos 20 réponses. Il comprend : l'analyse détaillée de vos composantes de tempérament, vos réflexes spontanés et réactions sous pression, le décryptage de vos archétypes secondaires, vos 3 duos d'alliance fraternelle (avec qui vous formez une équipe complémentaire et comment désamorcer les tensions du quotidien), ainsi qu'un plan d'action concret avec une grille bilan récapitulative."
   },
   {
     id: 'confidentialite-rgpd',
@@ -256,7 +256,7 @@ const Faq: React.FC = () => {
             to="/test"
             className="w-full sm:w-auto px-6 py-3.5 bg-brand-terracotta hover:bg-[#a0522f] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 text-center"
           >
-            <Compass className="w-4 h-4 text-brand-ochre" />
+            <Compass className="w-4 h-4 text-brand-charcoal" />
             <span>Passer le test gratuit</span>
           </Link>
         </div>

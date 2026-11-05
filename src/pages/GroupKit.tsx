@@ -622,6 +622,19 @@ export const GroupKit: React.FC = () => {
           </div>
         </div>
 
+        {/* Citation Dietrich Bonhoeffer - Même mise en page que la page d'accueil */}
+        <section className="py-14 bg-white border border-brand-ochre/15 rounded-3xl shadow-xs text-center mt-8">
+          <div className="max-w-2xl mx-auto px-6">
+            <blockquote className="font-display text-lg md:text-xl mb-3 text-brand-charcoal italic leading-relaxed">
+              « Dieu ne crée pas des copies, Il ne crée que des originaux. »
+            </blockquote>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-terracotta mb-4">
+              — Dietrich Bonhoeffer
+            </p>
+            <div className="w-10 h-0.5 bg-brand-terracotta mx-auto rounded-full" />
+          </div>
+        </section>
+
       </div>
 
       {/* MODAL LIGHTBOX POUR AGRANDIR LES PAGES D'EXEMPLE */}

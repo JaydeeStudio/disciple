@@ -104,11 +104,7 @@ const Test: React.FC = () => {
             className="bg-white p-10 md:p-14 rounded-[2rem] shadow-xl border border-brand-ochre/10"
           >
             <span className="text-brand-terracotta font-bold tracking-[0.2em] uppercase text-xs">Première étape</span>
-            <h2 className="font-display text-4xl mt-3 mb-4 text-brand-charcoal leading-tight">Mieux vous connaître</h2>
-            
-            <div className="mb-6 p-3.5 bg-brand-ochre/10 border border-brand-ochre/25 rounded-2xl text-xs text-brand-charcoal/85 italic leading-relaxed">
-              «&nbsp;Dieu ne crée pas des copies, Il ne crée que des originaux.&nbsp;» — <span className="font-semibold not-italic text-brand-charcoal">Dietrich Bonhoeffer</span>
-            </div>
+            <h2 className="font-display text-4xl mt-3 mb-6 text-brand-charcoal leading-tight">Mieux vous connaître</h2>
 
             {activeVip && (
               <div className="mb-6 p-4 bg-amber-50 border border-amber-200/80 rounded-2xl flex items-center gap-3">

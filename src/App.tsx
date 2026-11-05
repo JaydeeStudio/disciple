@@ -19,13 +19,27 @@ import { Footer } from './components/layout/Footer';
 import { AnimatePresence } from 'motion/react';
 import { verifyVipToken } from './services/vipService';
 
-// Ensures the page automatically scrolls to top when changing route
+// Ensures the page scrolls to hash anchor or to top when changing route
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [pathname]);
+    if (hash) {
+      const elementId = hash.replace('#', '');
+      // Delay slightly so the new route's DOM is mounted and painted
+      const timer = setTimeout(() => {
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        }
+      }, 120);
+      return () => clearTimeout(timer);
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [pathname, hash]);
 
   return null;
 };
