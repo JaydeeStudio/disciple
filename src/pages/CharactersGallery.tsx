@@ -108,9 +108,13 @@ const CharactersGallery: React.FC = () => {
           <h1 className="font-display text-4xl md:text-5xl text-brand-charcoal mb-4">
             Galerie des 36 personnages bibliques
           </h1>
-          <p className="text-brand-sage text-lg font-medium leading-relaxed">
+          <p className="text-brand-sage text-lg font-medium leading-relaxed mb-6">
             Découvrez les 36 profils de disciples de l'Ancien et du Nouveau Testament. Chaque personnage incarne un don unique et une facette vivante de l'action de Dieu.
           </p>
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-brand-ochre/10 border border-brand-ochre/25 rounded-full text-brand-charcoal/80 text-sm font-medium">
+            <Sparkles className="w-4 h-4 text-brand-terracotta shrink-0" />
+            <span>«&nbsp;Deviens ce que tu es.&nbsp;» — <strong className="text-brand-charcoal font-semibold">Saint Augustin</strong></span>
+          </div>
         </div>
 
         {/* Filters and Search Bar */}

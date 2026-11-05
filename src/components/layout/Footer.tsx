@@ -16,16 +16,7 @@ export const Footer: React.FC = () => {
             <Link to="/personnages" className="hover:text-white transition-colors">Les 36 personnages</Link>
             <Link to="/kit-communaute" className="hover:text-white transition-colors">Kit groupes</Link>
             <Link to="/methodologie" className="hover:text-white transition-colors">Méthodologie</Link>
-            <Link 
-              to="/methodologie#faq" 
-              onClick={() => {
-                const el = document.getElementById('faq');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              className="hover:text-white transition-colors"
-            >
-              FAQ
-            </Link>
+            <Link to="/faq" className="hover:text-white transition-colors">FAQ</Link>
             <button
               onClick={() => setPrivacyOpen(true)}
               className="hover:text-white transition-colors cursor-pointer"

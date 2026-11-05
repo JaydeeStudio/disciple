@@ -12,7 +12,8 @@ export async function downloadGroupKitZip(): Promise<void> {
   // Generate binary buffers from jsPDF
   const sheetPdf = generateFacilitationSheetPdf().output('arraybuffer');
   const matrixPdf = generateWallMatrixPdf().output('arraybuffer');
-  const binomesPdf = generateBinomesGuidePdf().output('arraybuffer');
+  const binomesDoc = await generateBinomesGuidePdf();
+  const binomesPdf = binomesDoc.output('arraybuffer');
 
   zip.file('01_Fiche_Animation_Rencontre_45min.pdf', sheetPdf);
   zip.file('02_Matrice_Murale_Cartographie_A3.pdf', matrixPdf);

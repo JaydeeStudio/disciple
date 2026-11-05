@@ -1,12 +1,15 @@
 import jsPDF from 'jspdf';
 
 /**
-  * Draws the official Disciple brand emblem in vector format
-  */
-function drawBrandEmblem(doc: jsPDF, x: number, y: number, s: number = 16): void {
-  // Dark rounded square #242220
+ * Draws the official Disciple brand emblem with the golden border on dark background
+ * matching the icone_sur_fonce.svg design.
+ */
+function drawBrandEmblem(doc: jsPDF, x: number, y: number, s: number = 18): void {
+  // Dark rounded square #242220 with golden border #D4A373
   doc.setFillColor(36, 34, 32);
-  doc.roundedRect(x, y, s, s, s * 0.25, s * 0.25, 'F');
+  doc.setDrawColor(212, 163, 115);
+  doc.setLineWidth(Math.max(0.4, s * 0.05));
+  doc.roundedRect(x, y, s, s, s * 0.25, s * 0.25, 'FD');
 
   const cx = x + s / 2;
   const cy = y + s / 2;
@@ -73,7 +76,7 @@ export function generateWallMatrixPdf(): jsPDF {
   doc.setFillColor(36, 32, 29); // #24201D
   doc.rect(14, 14, width - 28, 26, 'F');
 
-  // Official Brand emblem in header
+  // Official Brand emblem in header with gold contour
   drawBrandEmblem(doc, 20, 18, 18);
 
   // Header brand & main title (Large & readable)
@@ -98,7 +101,7 @@ export function generateWallMatrixPdf(): jsPDF {
   doc.setFontSize(8.5);
   doc.text('Recommandé : impression au format A3 pour affichage mural', width - 89, 31.5, { align: 'center' });
 
-  // Instructions strip below header (Generous height, no text overflow)
+  // Instructions strip below header
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(220, 212, 200);
   doc.setLineWidth(0.4);
@@ -107,13 +110,12 @@ export function generateWallMatrixPdf(): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(194, 94, 66);
-  doc.text('CONSIGNE D\'ANIMATION :', 20, 52.5);
+  doc.text('CONSIGNE D\'ANIMATION\u00A0:', 20, 52.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(50, 48, 45);
-  const guideText = 'Après la passation du test sur discipledejesus.netlify.app/test, chaque participant écrit son prénom sur un post-it et vient le coller dans le pôle correspondant à son profil dominant. Observez l\'équilibre global de votre équipe, les forces abondantes et les zones vides à fortifier.';
-  // Wrap cleanly over 2 lines inside the 392mm wide banner
+  const guideText = 'Après la passation du test sur discipledejesus.netlify.app/test, chaque participant écrit son prénom sur un post-it et vient le coller dans le pôle correspondant à son profil dominant.\nObservez l\'équilibre global de votre équipe, les forces abondantes et les zones vides à fortifier.';
   const splitGuide = doc.splitTextToSize(guideText, width - 28 - 95);
   doc.text(splitGuide, 85, 49.5);
 
@@ -209,7 +211,7 @@ export function generateWallMatrixPdf(): jsPDF {
     // Quadrant Top Accent Header
     doc.setFillColor(q.colorHeader[0], q.colorHeader[1], q.colorHeader[2]);
     doc.roundedRect(q.x, q.y, quadW, 16, 3, 3, 'F');
-    doc.rect(q.x, q.y + 8, quadW, 8, 'F'); // Square bottom corners of header
+    doc.rect(q.x, q.y + 8, quadW, 8, 'F');
 
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
@@ -242,7 +244,7 @@ export function generateWallMatrixPdf(): jsPDF {
     const splitWarn = doc.splitTextToSize(q.warning, 76);
     doc.text(splitWarn, q.x + 8, q.y + 83);
 
-    // Post-It / Member Placement Sticky Zone (Clean, open space without cluttering sub-boxes)
+    // Post-It / Member Placement Sticky Zone
     const stickyX = q.x + 88;
     const stickyY = q.y + 26;
     const stickyW = quadW - 96;
@@ -253,70 +255,23 @@ export function generateWallMatrixPdf(): jsPDF {
     doc.setLineWidth(0.4);
     doc.setLineDashPattern([2.5, 2.5], 0);
     doc.roundedRect(stickyX, stickyY, stickyW, stickyH, 2.5, 2.5, 'FD');
-    doc.setLineDashPattern([], 0); // Reset dash
+    doc.setLineDashPattern([], 0);
 
-    // Sticky Zone Prompt (Clean and prominent)
-    doc.setTextColor(150, 140, 130);
+    // Sticky Zone Prompt: 10pt and 8pt, closer to top of frame
+    doc.setTextColor(140, 130, 120);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
-    doc.text('ESPACE POST-IT & PRÉNOMS DES MEMBRES', stickyX + stickyW / 2, stickyY + 14, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('ESPACE POST-IT & PRÉNOMS DES MEMBRES', stickyX + stickyW / 2, stickyY + 7.5, { align: 'center' });
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(10.5);
-    doc.text('(Collez ici les post-its des prénoms ou écrivez librement au marqueur)', stickyX + stickyW / 2, stickyY + 22, { align: 'center' });
+    doc.setFontSize(8);
+    doc.text('(Collez ici les post-its des prénoms ou écrivez librement au marqueur)', stickyX + stickyW / 2, stickyY + 13, { align: 'center' });
   });
 
-  // ===============================================================
-  // ENLARGED & UNIFYING CENTRAL DISC ("PASTILLE CENTRALE")
-  // Visually unites the 4 poles into the One Body (1 Cor 12)
-  // ===============================================================
-  const cx = width / 2;
-  const cy = gridY + halfH;
-  const outerR = 25; // 50mm diameter
-
-  // Outer convergence ring with the 4 quadrant pole colors
-  // Top-left: Terracotta
-  doc.setFillColor(194, 94, 66);
-  doc.circle(cx, cy, outerR, 'F');
-
-  // Top-right slice: Ochre gold
-  doc.setFillColor(200, 145, 50);
-  doc.rect(cx, cy - outerR, outerR, outerR, 'F');
-
-  // Bottom-right slice: Sage green
-  doc.setFillColor(85, 115, 90);
-  doc.rect(cx, cy, outerR, outerR, 'F');
-
-  // Bottom-left slice: Deep slate
-  doc.setFillColor(45, 55, 72);
-  doc.rect(cx - outerR, cy, outerR, outerR, 'F');
-
-  // Re-clip by circular mask / central inner dark disc (radius 21mm)
-  doc.setFillColor(36, 32, 29); // #24201D
-  doc.circle(cx, cy, 21, 'F');
-
-  // Double golden border
-  doc.setDrawColor(212, 163, 115);
-  doc.setLineWidth(0.8);
-  doc.circle(cx, cy, 21, 'S');
-  doc.setDrawColor(160, 125, 85);
-  doc.setLineWidth(0.3);
-  doc.circle(cx, cy, 19.5, 'S');
-
-  // Central unifying typography (Legible & prominent)
-  doc.setTextColor(212, 163, 115);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.text('1 CORINTHIENS 12', cx, cy - 6, { align: 'center' });
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.text('UN SEUL', cx, cy);
-  doc.text('CORPS', cx, cy + 6.5, { align: 'center' });
-
-  doc.setTextColor(215, 205, 190);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
-  doc.text('Diversité des dons', cx, cy + 12.5, { align: 'center' });
+  // Central cross intersection guideline (clean subtle separator, no pastille)
+  doc.setDrawColor(215, 205, 190);
+  doc.setLineWidth(0.4);
+  doc.line(gridX + halfW + 2, gridY, gridX + halfW + 2, gridY + gridH + 2);
+  doc.line(gridX, gridY + halfH + 2, gridX + gridW, gridY + halfH + 2);
 
   // Bottom footer
   doc.setFont('helvetica', 'normal');

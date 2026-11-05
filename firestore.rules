@@ -50,7 +50,7 @@ service cloud.firestore {
              data.consent == true &&
              data.createdAt == request.time &&
              data.keys().hasAll(['email', 'archetypeKey', 'consent', 'createdAt']) &&
-             data.keys().hasOnly(['email', 'archetypeKey', 'archetypeName', 'consent', 'source', 'createdAt']);
+             data.keys().hasOnly(['email', 'archetypeKey', 'archetypeName', 'affinity', 'consent', 'source', 'createdAt']);
     }
 
     function isValidVipToken(data) {

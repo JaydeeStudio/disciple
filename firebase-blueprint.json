@@ -34,6 +34,7 @@
         "email": { "type": "string", "format": "email", "maxLength": 200 },
         "archetypeKey": { "type": "string", "maxLength": 50 },
         "archetypeName": { "type": "string", "maxLength": 100 },
+        "affinity": { "type": "number" },
         "consent": { "type": "boolean" },
         "source": { "type": "string", "maxLength": 50 },
         "createdAt": { "type": "string", "format": "date-time" }

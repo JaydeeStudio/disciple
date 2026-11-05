@@ -67,9 +67,9 @@ export const GroupKit: React.FC = () => {
     }
   };
 
-  const handleDownloadBinomes = () => {
+  const handleDownloadBinomes = async () => {
     try {
-      const doc = generateBinomesGuidePdf();
+      const doc = await generateBinomesGuidePdf();
       doc.save('03_Guide-Binomes-Frictions-Fraternelles.pdf');
     } catch (e) {
       console.error("Erreur téléchargement guide :", e);
@@ -343,13 +343,13 @@ export const GroupKit: React.FC = () => {
             </div>
 
             <p className="text-xs sm:text-sm text-brand-charcoal/70 leading-relaxed mt-4">
-              À l'âge des grands choix d'orientation, de vie affective et de premiers engagements paroissiaux, la démarche permet à chacun de relire son parcours avec bienveillance : comprendre comment sa sensibilité intellectuelle, émotionnelle ou pratique est voulue et bénie par Dieu.
+              À l'âge des grands choix d'orientation, de vie affective et de premiers engagements dans l'église, la démarche permet à chacun de relire son parcours avec bienveillance : comprendre comment sa sensibilité intellectuelle, émotionnelle ou pratique est voulue et bénie par Dieu.
             </p>
           </div>
         </div>
 
         {/* SECTION LES 3 RESSOURCES DU KIT À TÉLÉCHARGER (Avec ZIP) */}
-        <div className="bg-gradient-to-br from-white to-[#fbf8f2] rounded-3xl p-8 sm:p-10 border border-brand-ochre/25 shadow-sm mb-14 no-print">
+        <div id="ressources-kit" className="bg-gradient-to-br from-white to-[#fbf8f2] rounded-3xl p-8 sm:p-10 border border-brand-ochre/25 shadow-sm mb-14 no-print scroll-mt-24">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 pb-6 border-b border-brand-ochre/15">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-brand-terracotta">

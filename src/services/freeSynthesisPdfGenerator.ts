@@ -3,6 +3,32 @@ import { Archetype } from '../data/archetypes';
 import { Dimension } from '../data/questions';
 import { getArchetypeSilhouettePngDataUrl } from '../components/BiblicalSilhouette';
 
+/**
+ * Loads an image from a URL as a data URL using an offscreen canvas
+ */
+async function loadImageAsDataUrl(src: string): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(null); return; }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
 const COLORS = {
   creamBg: [250, 247, 242] as [number, number, number],      // Web app exact warm beige #FAF7F2
   creamCard: [253, 251, 247] as [number, number, number],    // Crisp warm card surface
@@ -540,39 +566,46 @@ Pour ne pas vous enfermer dans une simple étiquette mais véritablement identif
     }
   ];
 
-  let py = pilY + 5;
+  // Preload preview images for page 3 upsell
+  const [imgCouv, imgRadar, imgSynthese] = await Promise.all([
+    loadImageAsDataUrl('/images/guide-preview/couverture.jpg'),
+    loadImageAsDataUrl('/images/guide-preview/page-radar.jpg'),
+    loadImageAsDataUrl('/images/guide-preview/page-synthese.jpg')
+  ]);
+
+  let py = pilY + 4;
   pillars.forEach(p => {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(COLORS.borderTint[0], COLORS.borderTint[1], COLORS.borderTint[2]);
     doc.setLineWidth(0.3);
-    doc.roundedRect(20, py, 170, 17, 2.5, 2.5, 'FD');
+    doc.roundedRect(20, py, 170, 13.5, 2, 2, 'FD');
 
     // Number badge
     doc.setFillColor(p.color[0], p.color[1], p.color[2]);
-    doc.roundedRect(24, py + 2.5, 10, 12, 1.5, 1.5, 'F');
+    doc.roundedRect(23, py + 2, 9, 9.5, 1.2, 1.2, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(255, 255, 255);
-    doc.text(p.num, 29, py + 10.5, { align: 'center' });
+    doc.text(p.num, 27.5, py + 8.5, { align: 'center' });
 
-    // Title & desc (Width strictly constrained to 144mm, zero overflow)
+    // Title & desc
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
+    doc.setFontSize(8.2);
     doc.setTextColor(COLORS.charcoal[0], COLORS.charcoal[1], COLORS.charcoal[2]);
-    doc.text(p.title, 38, py + 6.5);
+    doc.text(p.title, 36, py + 5.5);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.2);
     doc.setTextColor(COLORS.textMuted[0], COLORS.textMuted[1], COLORS.textMuted[2]);
-    const splitPDesc = doc.splitTextToSize(p.desc, 144);
-    doc.text(splitPDesc, 38, py + 11.5);
+    const splitPDesc = doc.splitTextToSize(p.desc, 148);
+    doc.text(splitPDesc, 36, py + 9.8);
 
-    py += 20;
+    py += 15.5;
   });
 
-  // Grand CTA Marketing Box (Sober, Clean, No Raw Stripe URL)
-  const ctaY = 194;
-  const ctaH = 76;
+  // Grand CTA Marketing Box with 3 Real Preview Images
+  const ctaY = 171;
+  const ctaH = 108;
   doc.setFillColor(COLORS.charcoal[0], COLORS.charcoal[1], COLORS.charcoal[2]);
   doc.roundedRect(20, ctaY, 170, ctaH, 4, 4, 'F');
 
@@ -583,42 +616,79 @@ Pour ne pas vous enfermer dans une simple étiquette mais véritablement identif
 
   // Badge
   doc.setFillColor(COLORS.terracotta[0], COLORS.terracotta[1], COLORS.terracotta[2]);
-  doc.roundedRect(65, ctaY + 6, 80, 6.5, 3, 3, 'F');
+  doc.roundedRect(65, ctaY + 5, 80, 6, 2.5, 2.5, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7);
   doc.setTextColor(255, 255, 255);
-  doc.text('ACCÈS IMMÉDIAT • ÉDITION SUR MESURE', 105, ctaY + 10.5, { align: 'center' });
+  doc.text('ACCÈS IMMÉDIAT • ÉDITION SUR MESURE (36 PAGES)', 105, ctaY + 9.2, { align: 'center' });
 
   // Title
   doc.setFont('times', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(14.5);
   doc.setTextColor(255, 255, 255);
-  doc.text('Débloquez votre Dossier Complet de 36 pages', 105, ctaY + 21, { align: 'center' });
+  doc.text('Débloquez votre Dossier Complet de 36 pages', 105, ctaY + 17.5, { align: 'center' });
 
-  // Subtitle
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(220, 215, 205);
-  doc.text('Généré sur mesure à partir de vos réponses personnelles • Prêt à imprimer (A4 HD)', 105, ctaY + 27, { align: 'center' });
+  // 3 Images row
+  const imgY = ctaY + 21;
+  const imgW = 28;
+  const imgH = 37;
+  const imgSpacing = 24;
+  const startX = 39;
+
+  const previewCards = [
+    { data: imgCouv, label: 'Couverture reliée', sub: 'Page 1' },
+    { data: imgRadar, label: 'Roue polaire radar', sub: 'Page 4' },
+    { data: imgSynthese, label: 'Cartographie 2D', sub: 'Page 35' }
+  ];
+
+  previewCards.forEach((c, idx) => {
+    const cx = startX + idx * (imgW + imgSpacing);
+
+    if (c.data) {
+      try {
+        doc.addImage(c.data, 'JPEG', cx, imgY, imgW, imgH);
+      } catch {
+        doc.setFillColor(50, 45, 40);
+        doc.rect(cx, imgY, imgW, imgH, 'F');
+      }
+    } else {
+      doc.setFillColor(50, 45, 40);
+      doc.rect(cx, imgY, imgW, imgH, 'F');
+    }
+
+    doc.setDrawColor(COLORS.ochre[0], COLORS.ochre[1], COLORS.ochre[2]);
+    doc.setLineWidth(0.4);
+    doc.rect(cx, imgY, imgW, imgH, 'S');
+
+    doc.setTextColor(COLORS.ochre[0], COLORS.ochre[1], COLORS.ochre[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.text(c.label, cx + imgW / 2, imgY + imgH + 3.2, { align: 'center' });
+
+    doc.setTextColor(190, 185, 175);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.text(c.sub, cx + imgW / 2, imgY + imgH + 6.2, { align: 'center' });
+  });
 
   // Price & Details
   doc.setFont('times', 'bold');
-  doc.setFontSize(13.5);
+  doc.setFontSize(12.5);
   doc.setTextColor(COLORS.ochre[0], COLORS.ochre[1], COLORS.ochre[2]);
-  doc.text('Tarif unique : 19 € (au lieu de 29 €)', 105, ctaY + 35, { align: 'center' });
+  doc.text('Tarif unique : 19 € (au lieu de 29 €)', 105, ctaY + 73, { align: 'center' });
 
-  // Large Action Button (Generous width 154mm, perfectly fitting text, no overflow)
-  const btnX = 28;
-  const btnY = ctaY + 40;
-  const btnW = 154;
-  const btnH = 13;
+  // Large Action Button
+  const btnX = 26;
+  const btnY = ctaY + 77.5;
+  const btnW = 158;
+  const btnH = 12;
   doc.setFillColor(COLORS.ochre[0], COLORS.ochre[1], COLORS.ochre[2]);
-  doc.roundedRect(btnX, btnY, btnW, btnH, 3, 3, 'F');
+  doc.roundedRect(btnX, btnY, btnW, btnH, 2.5, 2.5, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
+  doc.setFontSize(8.2);
   doc.setTextColor(COLORS.charcoal[0], COLORS.charcoal[1], COLORS.charcoal[2]);
-  doc.text('COMMANDER ET TÉLÉCHARGER LE DOSSIER COMPLET (36 PAGES)', 105, btnY + 8, { align: 'center' });
+  doc.text('COMMANDER ET TÉLÉCHARGER LE DOSSIER COMPLET (36 PAGES)', 105, btnY + 7.5, { align: 'center' });
 
   // Dynamic target link preserving the participant's exact answers across devices
   let effectiveTargetUrl = paymentUrl || 'https://buy.stripe.com/7sY8wP6Xj2ta06oexaeIw00';
@@ -638,9 +708,9 @@ Pour ne pas vous enfermer dans une simple étiquette mais véritablement identif
 
   // Security assurance note
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7.2);
   doc.setTextColor(195, 190, 180);
-  doc.text('Paiement 100% sécurisé par Stripe • Téléchargement direct immédiat en PDF HD', 105, ctaY + 62, { align: 'center' });
+  doc.text('Paiement 100% sécurisé par Stripe • Téléchargement direct immédiat en PDF HD', 105, ctaY + 97.5, { align: 'center' });
 
   // Footer
   doc.setFont('helvetica', 'normal');

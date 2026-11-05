@@ -175,7 +175,7 @@ Si tu veux le résultat mathématique exact parmi 36 personnages bibliques, le t
             Scripts & Modèles de Diffusion
           </h1>
           <p className="text-base sm:text-lg text-brand-charcoal/70 max-w-2xl mx-auto leading-relaxed mb-6">
-            Tous les textes prêts à copier-coller pour faire connaître la plateforme à coût zéro : messages WhatsApp personnels, posts Instagram, annonces paroissiales et idées de vidéos.
+            Tous les textes prêts à copier-coller pour faire connaître la plateforme à coût zéro : messages WhatsApp personnels, posts Instagram, annonces d'églises et idées de vidéos.
           </p>
         </div>
 
@@ -222,7 +222,7 @@ Si tu veux le résultat mathématique exact parmi 36 personnages bibliques, le t
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Feuilles d'annonces & Paroisses</span>
+            <span>Feuilles d'annonces & Églises</span>
           </button>
           <button
             onClick={() => setActiveTab('video')}

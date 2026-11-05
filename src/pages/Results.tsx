@@ -24,7 +24,8 @@ import {
   CheckCircle, 
   X,
   Users,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle
 } from 'lucide-react';
 import { db } from '../services/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -68,6 +69,10 @@ const Results: React.FC = () => {
   const [manualVipError, setManualVipError] = useState('');
   const [manualVipLoading, setManualVipLoading] = useState(false);
 
+  // Calibration safeguard state: prevent payment if scores are not calibrated
+  const [isCalibrated, setIsCalibrated] = useState<boolean>(true);
+  const [showMissingCalibrationModal, setShowMissingCalibrationModal] = useState<boolean>(false);
+
   // Read possible query parameters from shared link (e.g. ?score=94&nom=David&scores=-6,4,8,-2,5)
   const searchParams = new URLSearchParams(location.search);
   const queryScore = searchParams.get('score') || searchParams.get('aff');
@@ -109,6 +114,7 @@ const Results: React.FC = () => {
         const archKey = calc.primaryMatch.archetype.key;
 
         setCalculation(calc);
+        setIsCalibrated(true);
         setResult({
           archetypeKey: archKey,
           name: userName,
@@ -121,6 +127,7 @@ const Results: React.FC = () => {
             archetypeKey: archKey,
             userData: { name: userName, gender: location.state.userData?.gender || 'M', age: location.state.userData?.age || '' },
             calculation: calc,
+            isCalibrated: true,
             savedAt: new Date().toISOString()
           }));
         } catch (e) {
@@ -143,6 +150,8 @@ const Results: React.FC = () => {
               const parsedStored = JSON.parse(rawStored);
               if (parsedStored && parsedStored.archetypeKey === lowerId && parsedStored.calculation) {
                 setCalculation(parsedStored.calculation);
+                const storedCalibration = parsedStored.isCalibrated !== false;
+                setIsCalibrated(storedCalibration);
                 setResult({
                   archetypeKey: lowerId,
                   name: parsedStored.userData?.name || 'Disciple',
@@ -167,6 +176,7 @@ const Results: React.FC = () => {
 
         // Check if exact personalized scores are provided in the URL
         let effectiveScores = arch.coordinates;
+        let hasValidQueryScores = false;
         if (queryScores) {
           const parts = queryScores.split(',').map(Number);
           if (parts.length === 5 && parts.every(n => !isNaN(n))) {
@@ -177,8 +187,11 @@ const Results: React.FC = () => {
               L_F: parts[3],
               R_M: parts[4]
             };
+            hasValidQueryScores = true;
           }
         }
+
+        setIsCalibrated(hasValidQueryScores);
 
         const effectiveDimensions = computeDimensionResults(effectiveScores);
         
@@ -229,6 +242,7 @@ const Results: React.FC = () => {
             archetypeKey: lowerId,
             userData: { name: visitorName },
             calculation: effectiveCalc,
+            isCalibrated: hasValidQueryScores,
             savedAt: new Date().toISOString()
           }));
         } catch (e) {
@@ -253,6 +267,7 @@ const Results: React.FC = () => {
         if (docSnap.exists()) {
           const docData = docSnap.data();
           setResult(docData);
+          setIsCalibrated(Boolean(docData.answers));
 
           if (docData.answers) {
             const calc = performFullCalculation(docData.answers, docData.userData?.gender);
@@ -356,6 +371,14 @@ const Results: React.FC = () => {
       console.error("Erreur génération guide complet :", err);
     } finally {
       setDownloadingGuide(false);
+    }
+  };
+
+  const handlePaymentClick = (e: React.MouseEvent) => {
+    triggerHaptic('medium');
+    if (!isCalibrated) {
+      e.preventDefault();
+      setShowMissingCalibrationModal(true);
     }
   };
 
@@ -845,12 +868,23 @@ const Results: React.FC = () => {
                     href={customPaymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => triggerHaptic('medium')}
+                    onClick={handlePaymentClick}
                     className="w-full sm:w-auto px-8 py-4 bg-brand-terracotta hover:bg-[#a0522f] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
                   >
                     <Lock className="w-4 h-4" />
                     <span>Obtenir mon dossier complet (19 €)</span>
                   </a>
+
+                  {!isCalibrated && (
+                    <button
+                      type="button"
+                      onClick={() => setShowMissingCalibrationModal(true)}
+                      className="flex items-center gap-2 px-3.5 py-2 bg-amber-50 hover:bg-amber-100/80 border border-amber-300 rounded-xl text-amber-900 text-xs font-semibold max-w-md text-left transition-colors cursor-pointer"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Étalonnage requis pour commander • Cliquez pour voir comment débloquer votre dossier</span>
+                    </button>
+                  )}
 
                   <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-brand-charcoal/60 font-medium">
                     <span className="flex items-center gap-1">
@@ -974,7 +1008,7 @@ const Results: React.FC = () => {
                 Pour animateurs, pasteurs & responsables de jeunes
               </span>
               <h4 className="font-display text-lg sm:text-xl text-brand-charcoal">
-                Vous animez un groupe de prière ou une paroisse ?
+                Vous animez un groupe de prière ou une église&nbsp;?
               </h4>
               <p className="text-xs text-brand-charcoal/70 mt-0.5">
                 Accédez à notre déroulé complet de 45 minutes et à la fiche de partage offerte pour faire vivre cette expérience à votre groupe.
@@ -1072,6 +1106,81 @@ const Results: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Missing Calibration Modal */}
+        {showMissingCalibrationModal && (
+          <div className="fixed inset-0 z-50 bg-brand-charcoal/80 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border-2 border-brand-ochre/30 shadow-2xl relative space-y-5 animate-fadeIn">
+              <button
+                onClick={() => setShowMissingCalibrationModal(false)}
+                className="absolute top-4 right-4 p-2 text-brand-charcoal/50 hover:text-brand-charcoal rounded-full hover:bg-brand-bg transition-colors cursor-pointer"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 shrink-0">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 block">
+                    Étalonnage personnalisé requis
+                  </span>
+                  <h3 className="font-display font-bold text-lg sm:text-xl text-brand-charcoal">
+                    Vos scores de test ne sont pas détectés
+                  </h3>
+                </div>
+              </div>
+
+              <div className="text-xs sm:text-sm text-brand-charcoal/80 space-y-3 leading-relaxed">
+                <p>
+                  Pour éditer votre <strong>Dossier d'approfondissement de 36 pages 100% sur mesure</strong> (avec votre roue polaire des 8 énergies, votre dynamique relationnelle et vos 3 binômes fraternels), notre moteur a impérativement besoin de vos réponses réelles.
+                </p>
+                <p className="p-3 bg-brand-bg rounded-xl border border-brand-ochre/20 text-xs text-brand-charcoal/70">
+                  Vous consultez actuellement une fiche archétype générale sans les coordonnées mathématiques de votre test.
+                </p>
+
+                <div className="space-y-2 pt-1">
+                  <p className="font-bold text-brand-charcoal text-xs uppercase tracking-wide">
+                    Comment débloquer votre dossier sur mesure :
+                  </p>
+                  <ul className="space-y-2.5 text-xs">
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-brand-ochre/25 text-brand-charcoal font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
+                      <span><strong>Depuis votre synthèse PDF gratuite :</strong> Cliquez sur le bouton « Commander le dossier complet » ou sur le lien en fin de document (vos 5 coordonnées mathématiques y sont déjà encodées).</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-brand-ochre/25 text-brand-charcoal font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
+                      <span><strong>Depuis votre appareil initial :</strong> Si vous avez changé de téléphone ou d'ordinateur, reconnectez-vous depuis le navigateur avec lequel vous avez complété le test.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-brand-ochre/25 text-brand-charcoal font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
+                      <span><strong>Sinon, passez le test gratuit :</strong> En seulement 5 minutes (30 questions rapides), vos résultats précis seront immédiatement calculés et sauvegardés.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-brand-ochre/15">
+                <button
+                  type="button"
+                  onClick={() => setShowMissingCalibrationModal(false)}
+                  className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-brand-charcoal/70 hover:text-brand-charcoal cursor-pointer"
+                >
+                  Fermer
+                </button>
+                <Link
+                  to="/test"
+                  onClick={() => setShowMissingCalibrationModal(false)}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-terracotta hover:bg-[#a0522f] text-white font-bold text-xs rounded-xl shadow-sm text-center transition-all cursor-pointer"
+                >
+                  Passer le test gratuit (5 min)
+                </Link>
+              </div>
             </div>
           </div>
         )}

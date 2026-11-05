@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { 
@@ -11,7 +11,12 @@ import {
   ArrowRight, 
   Sparkles,
   Sliders,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown,
+  HelpCircle,
+  FileText,
+  Smartphone,
+  ShieldCheck
 } from 'lucide-react';
 import { ARCHETYPES } from '../data/archetypes';
 
@@ -102,13 +107,16 @@ const Home: React.FC = () => {
       </section>
 
       {/* Quote Section */}
-      <section className="py-16 bg-white border-y border-brand-ochre/10">
+      <section className="py-14 bg-white border-y border-brand-ochre/10">
         <div className="container mx-auto px-6 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-display text-2xl md:text-4xl mb-6 text-brand-charcoal italic leading-snug">
-              "Dieu ne t’appelle pas à être une copie d’un autre disciple. Il t’invite à Le suivre avec le cœur qu’Il t’a donné."
-            </h2>
-            <div className="w-12 h-1 bg-brand-terracotta mx-auto rounded-full" />
+          <div className="max-w-2xl mx-auto">
+            <blockquote className="font-display text-lg md:text-xl mb-3 text-brand-charcoal italic leading-relaxed">
+              « Tu es unique. Personne d'autre n'a ton visage, tes yeux, tes mains, ton histoire ou ton cœur. Dieu t’a façonné d'une manière unique pour que tu puisses l'aimer d'une manière que personne d'autre ne peut faire. »
+            </blockquote>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-terracotta mb-4">
+              — Henri Nouwen
+            </p>
+            <div className="w-10 h-0.5 bg-brand-terracotta mx-auto rounded-full" />
           </div>
         </div>
       </section>
@@ -195,68 +203,24 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5 Dimensions Teaser */}
-      <section className="py-20 bg-white border-t border-brand-ochre/10">
+      {/* Community & Church Group Kit - Placé au cœur de l'accueil */}
+      <section className="py-20 bg-white border-t border-brand-ochre/15">
         <div className="container mx-auto px-6 max-w-5xl">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-brand-terracotta font-bold tracking-[0.2em] uppercase text-xs mb-2 block">
-              Algorithme & Psychométrie
-            </span>
-            <h2 className="font-display text-3xl md:text-4xl text-brand-charcoal mb-4">
-              Comment sont calculés vos résultats ?
-            </h2>
-            <p className="text-brand-charcoal/70 text-sm leading-relaxed">
-              Vos réponses à nos 20 questions projettent votre profil sur 5 axes spirituels essentiels. Votre score d'affinité est ensuite mesuré par distance euclidienne avec les 36 signatures bibliques.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
-            {[
-              { num: "Axe 1", label: "Intériorité vs Action" },
-              { num: "Axe 2", label: "Structure vs Spontanéité" },
-              { num: "Axe 3", label: "Vérité vs Grâce" },
-              { num: "Axe 4", label: "Fidélité vs Leadership" },
-              { num: "Axe 5", label: "Raison vs Révélation" },
-            ].map((axe, i) => (
-              <div key={i} className="p-4 bg-brand-bg/70 rounded-xl border border-brand-ochre/15 text-center">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-terracotta block mb-1">
-                  {axe.num}
-                </span>
-                <p className="font-bold text-xs text-brand-charcoal">{axe.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link
-              to="/methodologie"
-              className="px-6 py-3 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold rounded-xl text-xs transition-colors inline-flex items-center gap-2 shadow-sm"
-            >
-              <Calculator className="w-4 h-4" />
-              Consulter la méthodologie complète
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Community & Church Group Kit Teaser (tout en bas) */}
-      <section className="py-14 bg-gradient-to-b from-white to-[#fdfaf5] border-t border-brand-ochre/15">
-        <div className="container mx-auto px-6 max-w-5xl">
-          <div className="bg-white rounded-3xl border border-brand-ochre/25 p-8 sm:p-10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="bg-gradient-to-br from-[#fcfaf7] to-white rounded-3xl border border-brand-ochre/25 p-8 sm:p-12 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-start gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-brand-charcoal text-white flex items-center justify-center shrink-0 shadow-sm">
-                <Users className="w-7 h-7 text-brand-ochre" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-charcoal text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
+                <Users className="w-8 h-8 text-brand-ochre" />
               </div>
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-ochre/15 text-brand-terracotta text-[10px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Ressource offerte</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-ochre/15 text-brand-terracotta text-[10px] font-bold uppercase tracking-wider mb-3">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Ressource offerte • Groupes & Équipes</span>
                 </span>
-                <h3 className="font-display text-2xl sm:text-3xl text-brand-charcoal mb-2">
-                  Vous animez un groupe de prière ou une paroisse ?
+                <h3 className="font-display text-2xl sm:text-3xl text-brand-charcoal mb-3 leading-tight">
+                  Vous animez un groupe de maison ou une équipe pastorale&nbsp;?
                 </h3>
-                <p className="text-xs sm:text-sm text-brand-charcoal/70 leading-relaxed max-w-xl">
-                  Découvrez notre Kit d'animation complet de 45 minutes pour révéler la diversité des tempéraments bibliques dans votre communauté, susciter des échanges profonds et valoriser la complémentarité des dons.
+                <p className="text-sm text-brand-charcoal/75 leading-relaxed max-w-xl">
+                  Utilisez ce test pour votre groupe de maison, votre équipe de service ou votre conseil d'église. C'est un outil puissant pour révéler les forces de chacun, désamorcer les jugements de tempérament et aborder la question de l'identité en Dieu sans culpabilité.
                 </p>
               </div>
             </div>
@@ -264,12 +228,39 @@ const Home: React.FC = () => {
             <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
               <Link
                 to="/kit-communaute"
-                className="w-full sm:w-auto px-7 py-3.5 bg-brand-terracotta hover:bg-[#a0522f] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 text-center"
+                className="w-full sm:w-auto px-8 py-4 bg-brand-terracotta hover:bg-[#a0522f] text-white font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2.5 text-center group"
               >
-                <span>Accéder au Kit groupes</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Découvrir le Kit d'animation gratuit</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Teaser Card - En dernière position */}
+      <section className="py-16 bg-[#fdfaf5] border-t border-brand-ochre/15">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <div className="p-8 sm:p-10 rounded-3xl bg-white border border-brand-ochre/25 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+            <div className="space-y-1.5 text-center sm:text-left">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-ochre/15 text-brand-charcoal text-[11px] font-bold uppercase tracking-wider mb-1">
+                <HelpCircle className="w-3.5 h-3.5 text-brand-terracotta" />
+                <span>Centre d'aide & Questions</span>
+              </span>
+              <h3 className="font-display text-2xl text-brand-charcoal">
+                Une question sur le test ou vos résultats ?
+              </h3>
+              <p className="text-xs sm:text-sm text-brand-charcoal/70 max-w-lg leading-relaxed">
+                Consultez notre Foire Aux Questions complète : méthode de calcul, dossier de 36 pages, kit pour groupes et confidentialité.
+              </p>
+            </div>
+            <Link
+              to="/faq"
+              className="px-6 py-3.5 bg-brand-charcoal hover:bg-brand-terracotta text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm shrink-0 flex items-center gap-2"
+            >
+              <span>Consulter la FAQ</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

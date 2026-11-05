@@ -14,8 +14,11 @@ import {
   Layers,
   ArrowRight,
   BookOpen,
-  Printer
+  Printer,
+  Download,
+  Loader2
 } from 'lucide-react';
+import { generateTeamCrossAnalysisPdf } from '../services/teamCrossAnalysisPdfGenerator';
 
 export interface TeamMember {
   id: string;
@@ -101,7 +104,7 @@ export function getArchetypePole(arch: Archetype): TeamPole {
 const PRESETS: { title: string; desc: string; members: { name: string; archetypeKey: string }[] }[] = [
   {
     title: 'Équipe pastorale & animation',
-    desc: 'Un collège type de paroisse ou d\'aumônerie',
+    desc: 'Un collège type d\'église ou d\'aumônerie',
     members: [
       { name: 'Frédéric', archetypeKey: 'pierre' },
       { name: 'Sophie', archetypeKey: 'marthe' },
@@ -134,6 +137,7 @@ const PRESETS: { title: string; desc: string; members: { name: string; archetype
 ];
 
 export const TeamCrossAnalysis: React.FC = () => {
+  const [teamName, setTeamName] = useState('Notre Équipe');
   const [members, setMembers] = useState<TeamMember[]>([
     { id: '1', name: 'Pierre-Alain', archetypeKey: 'pierre' },
     { id: '2', name: 'Hélène', archetypeKey: 'marthe' },
@@ -143,9 +147,15 @@ export const TeamCrossAnalysis: React.FC = () => {
 
   const [newName, setNewName] = useState('');
   const [newArchetype, setNewArchetype] = useState('jean');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const addMember = () => {
-    if (!newName.trim()) return;
+    if (!newName.trim()) {
+      setNameError('Veuillez saisir un prénom avant de cliquer sur Ajouter.');
+      return;
+    }
+    setNameError(null);
     const newId = Date.now().toString();
     setMembers(prev => [...prev, { id: newId, name: newName.trim(), archetypeKey: newArchetype }]);
     setNewName('');
@@ -155,7 +165,13 @@ export const TeamCrossAnalysis: React.FC = () => {
     setMembers(prev => prev.filter(m => m.id !== id));
   };
 
+  const clearAllMembers = () => {
+    setMembers([]);
+    setNameError(null);
+  };
+
   const loadPreset = (presetMembers: { name: string; archetypeKey: string }[]) => {
+    setNameError(null);
     setMembers(presetMembers.map((m, idx) => ({ id: `${idx + 1}-${Date.now()}`, ...m })));
   };
 
@@ -279,7 +295,7 @@ export const TeamCrossAnalysis: React.FC = () => {
       const p = members.find(m => m.archetypeKey === 'pierre')?.name;
       const t = members.find(m => m.archetypeKey === 'thomas')?.name;
       frictionAlerts.push({
-        duoTitle: `Duo Pierre & Thomas (${p} ↔ ${t})`,
+        duoTitle: `Duo Pierre avec Thomas (${p} avec ${t})`,
         friction: `${p} peut percevoir les doutes de ${t} comme un frein pessimiste ; ${t} peut percevoir l'enthousiasme de ${p} comme une précipitation imprudente.`,
         remedy: `Faire valider la faisabilité par ${t} avant le vote final, tout en laissant à ${p} la paternité de l'élan initial.`
       });
@@ -289,7 +305,7 @@ export const TeamCrossAnalysis: React.FC = () => {
       const ma = members.find(m => m.archetypeKey === 'marthe')?.name;
       const mb = members.find(m => m.archetypeKey === 'marie_bethanie')?.name;
       frictionAlerts.push({
-        duoTitle: `Duo Marthe & Marie (${ma} ↔ ${mb})`,
+        duoTitle: `Duo Marthe avec Marie (${ma} avec ${mb})`,
         friction: `${ma} peut ressentir de l'injustice face au temps passé par ${mb} en écoute passive ; ${mb} peut se sentir étouffée par l'agitation logistique de ${ma}.`,
         remedy: `Valoriser explicitement le service invisible de ${ma} et accorder à ${mb} un rôle d'intercession et de recueillement sans culpabilité.`
       });
@@ -299,7 +315,7 @@ export const TeamCrossAnalysis: React.FC = () => {
       const pa = members.find(m => m.archetypeKey === 'paul')?.name;
       const ba = members.find(m => m.archetypeKey === 'barnabas')?.name;
       frictionAlerts.push({
-        duoTitle: `Duo Paul & Barnabas (${pa} ↔ ${ba})`,
+        duoTitle: `Duo Paul avec Barnabas (${pa} avec ${ba})`,
         friction: `${pa} place la mission et le standard d'exigence au-dessus de tout ; ${ba} privilégie le relèvement individuel des personnes fragiles.`,
         remedy: `Distinguer la gouvernance du projet (confiée à ${pa}) et l'accompagnement pastoral des équipiers (confié à ${ba}).`
       });
@@ -309,7 +325,7 @@ export const TeamCrossAnalysis: React.FC = () => {
       const da = members.find(m => m.archetypeKey === 'david')?.name;
       const na = members.find(m => m.archetypeKey === 'nathan')?.name;
       frictionAlerts.push({
-        duoTitle: `Duo David & Nathan (${da} ↔ ${na})`,
+        duoTitle: `Duo David avec Nathan (${da} avec ${na})`,
         friction: `L'enthousiasme charismatique de ${da} peut balayer les détails moraux ou la rigueur ; ${na} apporte le rappel à la vérité.`,
         remedy: `Créer un espace régulier où ${na} peut débriefer en tête-à-tête avec ${da} en toute loyauté.`
       });
@@ -329,6 +345,24 @@ export const TeamCrossAnalysis: React.FC = () => {
       frictionAlerts
     };
   }, [members]);
+
+  const handleDownloadPdf = async () => {
+    if (!analysis || members.length === 0) return;
+    setIsGeneratingPdf(true);
+    try {
+      const doc = await generateTeamCrossAnalysisPdf({
+        teamName: teamName.trim() || 'Notre Équipe',
+        members,
+        analysis
+      });
+      const safeName = (teamName.trim() || 'Equipe').replace(/[^a-zA-Z0-9À-ÿ_-]/g, '_');
+      doc.save(`Synthese_Diagnostic_${safeName}.pdf`);
+    } catch (err) {
+      console.error('Erreur génération PDF équipe:', err);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const sortedArchetypeOptions = useMemo(() => {
     return Object.values(ARCHETYPES).sort((a, b) => a.name.localeCompare(b.name));
@@ -352,21 +386,33 @@ export const TeamCrossAnalysis: React.FC = () => {
           </p>
         </div>
 
-        {/* Quick Presets for Instant Testing */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0">
-          <span className="text-[11px] font-bold text-brand-charcoal/60 uppercase">Exemples types :</span>
-          <div className="flex flex-wrap gap-1.5">
-            {PRESETS.map((p, idx) => (
-              <button
-                key={idx}
-                onClick={() => loadPreset(p.members)}
-                className="text-[11px] font-semibold px-2.5 py-1 bg-brand-bg hover:bg-brand-ochre/15 text-brand-charcoal rounded-lg border border-brand-ochre/20 transition-colors cursor-pointer"
-                title={p.desc}
-              >
-                {p.title.split(' ')[0]} {p.title.split(' ')[1] || ''}
-              </button>
-            ))}
+        {/* Quick Presets & Clear Toolbar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-brand-charcoal/60 uppercase">Exemples :</span>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESETS.map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => loadPreset(p.members)}
+                  className="text-[11px] font-semibold px-2.5 py-1 bg-brand-bg hover:bg-brand-ochre/15 text-brand-charcoal rounded-lg border border-brand-ochre/20 transition-colors cursor-pointer"
+                  title={p.desc}
+                >
+                  {p.title.split(' ')[0]} {p.title.split(' ')[1] || ''}
+                </button>
+              ))}
+            </div>
           </div>
+          {members.length > 0 && (
+            <button
+              onClick={clearAllMembers}
+              className="text-[11px] font-semibold px-2.5 py-1 text-brand-terracotta hover:bg-brand-terracotta/10 rounded-lg border border-brand-terracotta/30 transition-colors flex items-center gap-1 cursor-pointer"
+              title="Vider la liste pour repartir d'une page blanche"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>Vider la liste</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -376,6 +422,21 @@ export const TeamCrossAnalysis: React.FC = () => {
         {/* Left Column: Member Roster (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-brand-bg/60 p-5 rounded-2xl border border-brand-ochre/20">
+            
+            {/* Team Name Input */}
+            <div className="mb-4 pb-4 border-b border-brand-ochre/15">
+              <label className="block text-[11px] font-bold text-brand-charcoal/70 uppercase mb-1">
+                Nom de l'équipe ou du groupe
+              </label>
+              <input
+                type="text"
+                placeholder="Ex : Collège pastoral, Groupe de maison, Équipe missionnaire..."
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className="w-full px-3 py-2 bg-white rounded-xl border border-brand-ochre/25 text-xs text-brand-charcoal font-semibold focus:outline-none focus:border-brand-terracotta"
+              />
+            </div>
+
             <h3 className="font-display font-bold text-base text-brand-charcoal mb-3 flex items-center justify-between">
               <span>Membres du groupe ({members.length})</span>
               <span className="text-xs font-sans font-normal text-brand-charcoal/60">Ajout immédiat</span>
@@ -391,11 +452,24 @@ export const TeamCrossAnalysis: React.FC = () => {
                   type="text"
                   placeholder="Ex : Matthieu, Sarah, David..."
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onChange={(e) => {
+                    setNewName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && addMember()}
-                  className="w-full px-3 py-2 bg-white rounded-xl border border-brand-ochre/25 text-xs text-brand-charcoal focus:outline-none focus:border-brand-terracotta"
+                  className={`w-full px-3 py-2 bg-white rounded-xl border text-xs text-brand-charcoal focus:outline-none focus:border-brand-terracotta transition-colors ${
+                    nameError ? 'border-amber-500 bg-amber-50/30' : 'border-brand-ochre/25'
+                  }`}
                 />
               </div>
+
+              {/* Warning Alert if Empty Name */}
+              {nameError && (
+                <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs animate-fadeIn">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>{nameError}</span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[11px] font-bold text-brand-charcoal/70 uppercase mb-1">
@@ -474,6 +548,23 @@ export const TeamCrossAnalysis: React.FC = () => {
           {analysis ? (
             <div className="space-y-6">
               
+              {/* Live Status indicator */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-brand-bg/60 px-4 py-2.5 rounded-xl border border-brand-ochre/20 text-xs text-brand-charcoal/70">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-brand-terracotta shrink-0" />
+                  <span><strong>Synthèse en direct ci-dessous</strong> • Document PDF téléchargeable en bas de page</span>
+                </div>
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf || members.length === 0}
+                  className="text-[11px] font-bold text-brand-terracotta hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto shrink-0"
+                  title="Télécharger directement la synthèse PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isGeneratingPdf ? 'Génération...' : 'Télécharger le PDF'}</span>
+                </button>
+              </div>
+
               {/* 1. Collective DNA Banner */}
               <div className="bg-brand-charcoal text-white rounded-2xl p-6 relative overflow-hidden shadow-sm">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-brand-ochre/10 rounded-full blur-2xl pointer-events-none" />
@@ -602,6 +693,39 @@ export const TeamCrossAnalysis: React.FC = () => {
                     Partagez ces équilibres avec votre équipe en rappelant 1 Corinthiens 12 : aucun profil n'est supérieur, et les lacunes du groupe sont une invitation explicite à s'appuyer mutuellement et à prier pour le don manquant.
                   </p>
                 </div>
+              </div>
+
+              {/* Full Export Block at the end of the analysis */}
+              <div className="p-6 bg-gradient-to-br from-white to-brand-bg rounded-2xl border-2 border-brand-ochre/25 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5 mt-2">
+                <div className="space-y-1 text-center sm:text-left">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-ochre/15 text-brand-terracotta text-[10px] font-bold uppercase tracking-wider mb-1">
+                    <BookOpen className="w-3 h-3" />
+                    <span>Rapport officiel complet</span>
+                  </div>
+                  <h4 className="font-display font-bold text-base text-brand-charcoal">
+                    Rapport de synthèse pour {teamName || 'le groupe'}
+                  </h4>
+                  <p className="text-xs text-brand-charcoal/70 max-w-md leading-relaxed">
+                    Document PDF haute définition de 2 pages A4 récapitulant l'ADN collectif, la répartition des 4 grands pôles spirituels, les super-pouvoirs, les angles morts et les conseils d'unité fraternelle.
+                  </p>
+                </div>
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf || members.length === 0}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-brand-terracotta hover:bg-[#a0522f] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer shrink-0"
+                >
+                  {isGeneratingPdf ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Génération du PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span>Télécharger la synthèse PDF (2 pages)</span>
+                    </>
+                  )}
+                </button>
               </div>
 
             </div>

@@ -97,9 +97,12 @@ const Methodology: React.FC = () => {
           <h1 className="font-display text-4xl md:text-6xl text-brand-charcoal mb-6">
             Comment sont calculés vos résultats ?
           </h1>
-          <p className="text-brand-sage text-lg font-medium leading-relaxed">
+          <p className="text-brand-sage text-lg font-medium leading-relaxed mb-6">
             Une approche transparente alliant fidélité aux Écritures, psychométrie des tempéraments et mesure bienveillante de votre posture de disciple.
           </p>
+          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-brand-ochre/10 border border-brand-ochre/25 rounded-full text-brand-charcoal/85 text-sm font-medium">
+            <span>«&nbsp;Dieu ne crée pas des copies, Il ne crée que des originaux.&nbsp;» — <strong className="text-brand-charcoal font-semibold">Dietrich Bonhoeffer</strong></span>
+          </div>
         </div>
 
         {/* 3 Pillars Overview - No numbers, warm titles, popularized phrasing */}
@@ -142,7 +145,7 @@ const Methodology: React.FC = () => {
         </div>
 
         {/* Section 1: The 5 Dimensions - Standard French sentence case */}
-        <section className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm">
+        <section id="dimensions" className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm scroll-mt-24">
           <div className="flex items-center gap-3 mb-4">
             <Layers className="w-6 h-6 text-brand-terracotta" />
             <span className="text-xs font-bold uppercase tracking-widest text-brand-terracotta">
@@ -201,7 +204,7 @@ const Methodology: React.FC = () => {
         </section>
 
         {/* Section 2: Popularized Explanation of the Calculation */}
-        <section className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm">
+        <section id="calcul" className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm scroll-mt-24">
           <div className="flex items-center gap-3 mb-4">
             <Calculator className="w-6 h-6 text-brand-sage" />
             <span className="text-xs font-bold uppercase tracking-widest text-brand-sage">
@@ -282,7 +285,7 @@ const Methodology: React.FC = () => {
         </section>
 
         {/* Section 3: Ethical & Pastoral Guidance - French sentence case */}
-        <section className="bg-[#fcfaf7] rounded-3xl border border-brand-ochre/20 p-8 md:p-12 mb-16 shadow-sm">
+        <section id="ethique" className="bg-[#fcfaf7] rounded-3xl border border-brand-ochre/20 p-8 md:p-12 mb-16 shadow-sm scroll-mt-24">
           <div className="flex items-center gap-3 mb-4">
             <Heart className="w-6 h-6 text-brand-terracotta" />
             <span className="text-xs font-bold uppercase tracking-widest text-brand-terracotta">
@@ -347,58 +350,37 @@ const Methodology: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 4: Interactive FAQ Section */}
-        <section id="faq" className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm scroll-mt-28">
-          <div className="flex items-center gap-3 mb-4">
-            <MessageCircleQuestion className="w-6 h-6 text-brand-ochre" />
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-ochre">
-              Foire aux questions
+        {/* Section 4: Unified FAQ Teaser Card */}
+        <section className="bg-white rounded-3xl border border-brand-ochre/15 p-8 md:p-12 mb-16 shadow-sm">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="w-14 h-14 bg-brand-ochre/10 rounded-2xl flex items-center justify-center text-brand-ochre mx-auto mb-5">
+              <MessageCircleQuestion className="w-7 h-7" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-ochre mb-2 block">
+              Foire aux questions complète
             </span>
-          </div>
-          <h2 className="font-display text-3xl md:text-4xl text-brand-charcoal mb-4">
-            Questions fréquentes sur la méthode et la fiabilité
-          </h2>
-          <p className="text-brand-charcoal/70 text-base mb-8 leading-relaxed">
-            Tout ce que vous souhaitez savoir sur la construction du test, l'utilisation pastorale et l'interprétation des résultats.
-          </p>
-
-          <div className="space-y-4">
-            {FAQ_LIST.map((faq, index) => {
-              const isOpen = openFAQIndex === index;
-              return (
-                <div 
-                  key={index} 
-                  className={cn(
-                    "rounded-2xl border transition-all duration-200 overflow-hidden",
-                    isOpen ? "border-brand-terracotta/40 bg-[#fdfaf5]" : "border-brand-ochre/15 bg-white hover:border-brand-ochre/30"
-                  )}
-                >
-                  <button
-                    onClick={() => toggleFAQ(index)}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-display font-medium text-lg text-brand-charcoal"
-                  >
-                    <span>{faq.question}</span>
-                    <ChevronDown className={cn("w-5 h-5 text-brand-terracotta shrink-0 transition-transform duration-300", isOpen && "rotate-180")} />
-                  </button>
-
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-5 pt-1 text-sm text-brand-charcoal/75 leading-relaxed border-t border-brand-ochre/10">
-                          {faq.answer}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+            <h2 className="font-display text-3xl md:text-4xl text-brand-charcoal mb-4">
+              Une question sur la méthode ou vos résultats&nbsp;?
+            </h2>
+            <p className="text-brand-charcoal/70 text-base mb-8 leading-relaxed max-w-2xl mx-auto">
+              Consultez notre FAQ générale pour tout comprendre sur l'ancrage théologique, l'accès au dossier 36 pages sur plusieurs appareils, la synchronisation sécurisée et le Kit communauté.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                to="/faq"
+                className="px-8 py-4 bg-brand-terracotta hover:bg-brand-terracotta/90 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Accéder à la Foire aux Questions</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link
+                to="/kit-communaute"
+                className="px-8 py-4 bg-brand-bg hover:bg-brand-ochre/20 text-brand-charcoal font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <Users className="w-5 h-5" />
+                <span>Découvrir le Kit Groupes</span>
+              </Link>
+            </div>
           </div>
         </section>
 

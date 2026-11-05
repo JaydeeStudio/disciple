@@ -1,12 +1,41 @@
 import jsPDF from 'jspdf';
 
 /**
- * Draws the official Disciple brand emblem in vector format
+ * Loads an image from a URL as a data URL using an offscreen canvas
+ */
+async function loadImageAsDataUrl(src: string): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(null); return; }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+/**
+ * Draws the official Disciple brand emblem with the golden border on dark background
+ * matching the icone_sur_fonce.svg design.
  */
 function drawBrandEmblem(doc: jsPDF, x: number, y: number, s: number = 14): void {
-  // Dark rounded square #242220
+  // Dark rounded square #242220 with golden border #D4A373
   doc.setFillColor(36, 34, 32);
-  doc.roundedRect(x, y, s, s, s * 0.25, s * 0.25, 'F');
+  doc.setDrawColor(212, 163, 115);
+  doc.setLineWidth(Math.max(0.4, s * 0.05));
+  doc.roundedRect(x, y, s, s, s * 0.25, s * 0.25, 'FD');
 
   const cx = x + s / 2;
   const cy = y + s / 2;
@@ -47,7 +76,7 @@ function drawBrandEmblem(doc: jsPDF, x: number, y: number, s: number = 14): void
  * 4-page PDF with high-end cover matching the complete dossier design.
  * Typography: >= 10pt body text, official BrandEmblem, clean & crisp layout.
  */
-export function generateBinomesGuidePdf(): jsPDF {
+export async function generateBinomesGuidePdf(): Promise<jsPDF> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -56,6 +85,13 @@ export function generateBinomesGuidePdf(): jsPDF {
 
   const pageW = 210;
   const pageH = 297;
+
+  // Preload the 3 preview images for the upsell section on page 4
+  const [imgCouv, imgRadar, imgSynthese] = await Promise.all([
+    loadImageAsDataUrl('/images/guide-preview/couverture.jpg'),
+    loadImageAsDataUrl('/images/guide-preview/page-radar.jpg'),
+    loadImageAsDataUrl('/images/guide-preview/page-synthese.jpg')
+  ]);
 
   // ==========================================
   // PAGE 1 : COUVERTURE HAUT DE GAMME NOIR & OR
@@ -71,7 +107,7 @@ export function generateBinomesGuidePdf(): jsPDF {
   doc.setLineWidth(0.3);
   doc.rect(17, 17, pageW - 34, pageH - 34);
 
-  // Official Brand Emblem centered on cover
+  // Official Brand Emblem centered on cover with gold border
   const coverEmblemSize = 28;
   drawBrandEmblem(doc, (pageW - coverEmblemSize) / 2, 54, coverEmblemSize);
 
@@ -110,7 +146,7 @@ export function generateBinomesGuidePdf(): jsPDF {
   doc.setTextColor(212, 163, 115);
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(10);
-  const quote = '« L\'œil ne peut pas dire à la main : Je n\'ai pas besoin de toi ; ni la tête dire aux pieds : Je n\'ai pas besoin de vous. Bien plus, les membres du corps qui paraissent être les plus faibles sont nécessaires. »';
+  const quote = '« L\'œil ne peut pas dire à la main\u00A0: «\u00A0Je n\'ai pas besoin de toi\u00A0»\u00A0; ni la tête dire aux pieds\u00A0:\n«\u00A0Je n\'ai pas besoin de vous\u00A0». Bien plus, les membres du corps qui paraissent être les plus faibles sont nécessaires. »';
   const splitQuote = doc.splitTextToSize(quote, 140);
   doc.text(splitQuote, pageW / 2, 196, { align: 'center' });
 
@@ -219,7 +255,7 @@ export function generateBinomesGuidePdf(): jsPDF {
     ty += trapHeight + 4;
   });
 
-  // Framework box for leaders
+  // Framework box for leaders - clean wrapping without orphaned quote
   doc.setFillColor(242, 235, 224);
   doc.setDrawColor(212, 163, 115);
   doc.setLineWidth(0.4);
@@ -233,7 +269,7 @@ export function generateBinomesGuidePdf(): jsPDF {
   doc.setTextColor(50, 45, 40);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  const advice = 'Votre rôle n\'est pas d\'éliminer les tensions, mais de leur donner un sens. Une équipe sans tension est souvent une équipe où la sincérité a disparu. Dès qu\'une divergence éclate, ramenez l\'équipe à la question suivante :\n\n« Quelle facette du Royaume de Dieu ce frère ou cette sœur est-il en train de protéger à cet instant précis ? »\n\nCette seule question désamorce l\'ego et replace chaque membre dans la gratitude pour son vis-à-vis.';
+  const advice = 'Votre rôle n\'est pas d\'éliminer les tensions, mais de leur donner un sens. Une équipe sans tension est souvent une équipe où la sincérité a disparu. Dès qu\'une divergence éclate, ramenez l\'équipe à la question suivante :\n\n« Quelle facette du Royaume de Dieu ce frère ou cette sœur\nest-il en train de protéger à cet instant précis ? »\n\nCette seule question désamorce l\'ego et replace chaque membre dans la gratitude pour son vis-à-vis.';
   const splitAdv = doc.splitTextToSize(advice, 166);
   doc.text(splitAdv, 22, ty + 19);
 
@@ -267,39 +303,40 @@ export function generateBinomesGuidePdf(): jsPDF {
   doc.setFontSize(15.5);
   doc.text('Les 6 binômes bibliques clés et leurs tensions fécondes', 14, 38);
 
+  // Binomes titles replaced with "avec"
   const binomes = [
     {
-      duo: '1. Pierre (Action & Impulsion) & Thomas (Vérification & Sagesse)',
+      duo: '1. Pierre (Action & Impulsion) avec Thomas (Vérification & Sagesse)',
       friction: 'Pierre juge Thomas trop craintif et paralysant ; Thomas juge Pierre imprudent et naïf.',
       tresor: 'L\'audace de Pierre franchit les portes ; la rigueur de Thomas consolide les fondations.',
       regle: 'Pierre lance l\'idée sans exiger de consensus immédiat ; Thomas challenge la faisabilité sans dénigrer la vision.'
     },
     {
-      duo: '2. Paul (Vision pionnière & Percée) & Barnabas (Consolation & Réconciliation)',
+      duo: '2. Paul (Vision pionnière & Percée) avec Barnabas (Consolation & Réconciliation)',
       friction: 'Paul privilégie l\'efficacité de la mission ; Barnabas refuse d\'abandonner les personnes fragiles (ex: Marc).',
       tresor: 'Paul garantit l\'impact apostolique ; Barnabas garantit l\'intégrité de l\'amour fraternel.',
       regle: 'Toujours confier la stratégie à Paul et l\'accueil des nouveaux convertis à Barnabas.'
     },
     {
-      duo: '3. Marthe (Logistique & Organisation) & Marie de Béthanie (Écoute & Présence)',
+      duo: '3. Marthe (Logistique & Organisation) avec Marie de Béthanie (Écoute & Présence)',
       friction: 'Marthe ressent de l\'injustice face à la passivité de Marie ; Marie se sent jugée dans son intimité spirituelle.',
       tresor: 'Sans Marthe, la communauté ne peut subsister ; sans Marie, la communauté oublie son Sauveur.',
       regle: 'Ne jamais culpabiliser Marie sur le temps de service, et soulager concrètement Marthe sans attendre qu\'elle craque.'
     },
     {
-      duo: '4. David (Louange & Intuition vive) & Nathan (Lucidité morale & Discernement)',
+      duo: '4. David (Louange & Intuition vive) avec Nathan (Lucidité morale & Discernement)',
       friction: 'L\'enthousiasme charismatique de David peut flirter avec l\'aveuglement ; Nathan apporte la contradiction.',
       tresor: 'Le charisme sans vérité engendre la dérive ; la vérité sans charisme engendre la sécheresse.',
       regle: 'Instituer un temps régulier où Nathan a l\'autorisation explicite de poser un miroir sans représailles.'
     },
     {
-      duo: '5. Néhémie (Bâtisseur d\'ouvrages & Concret) & Esdras (Gardien de la Loi & Prière)',
+      duo: '5. Néhémie (Bâtisseur d\'ouvrages & Concret) avec Esdras (Gardien de la Loi & Prière)',
       friction: 'Néhémie s\'agace des discours théoriques ; Esdras s\'inquiète de voir le faire prendre le pas sur l\'être.',
       tresor: 'Les murailles de Néhémie protègent le temple ; la prière d\'Esdras justifie les murailles.',
       regle: 'Valider tout grand jalon matériel par un temps d\'écoute spirituelle partagé.'
     },
     {
-      duo: '6. Timothée (Douceur & Sensibilité) & Silas (Courage sous les coups & Endurance)',
+      duo: '6. Timothée (Douceur & Sensibilité) avec Silas (Courage sous les coups & Endurance)',
       friction: 'Timothée est vite intimidé par l\'hostilité ; Silas peut mépriser la vulnérabilité émotionnelle.',
       tresor: 'Timothée apporte le baume pastoral ; Silas transmet la fermeté dans la tempête.',
       regle: 'Toujours associer un profil sensible à un profil ancré pour les missions à haute exposition.'
@@ -313,7 +350,7 @@ export function generateBinomesGuidePdf(): jsPDF {
     doc.setLineWidth(0.3);
     doc.roundedRect(14, by, 182, 37, 2, 2, 'FD');
 
-    // Duo title banner (Clean without broken characters)
+    // Duo title banner
     doc.setFillColor(45, 40, 35);
     doc.roundedRect(14, by, 182, 7.5, 2, 2, 'F');
     doc.rect(14, by + 3.5, 182, 4, 'F');
@@ -365,7 +402,7 @@ export function generateBinomesGuidePdf(): jsPDF {
   doc.text('Guide des binômes • Disciple — Archétypes bibliques • discipledejesus.netlify.app', 105, 290, { align: 'center' });
 
   // ==========================================
-  // PAGE 4 : PROTOCOLE DE RÉSOLUTION & PRIÈRE D'UNITÉ
+  // PAGE 4 : PROTOCOLE DE RÉSOLUTION & PRIÈRE D'UNITÉ + UPSELL 3 IMAGES
   // ==========================================
   doc.addPage();
   doc.setFillColor(250, 247, 242);
@@ -385,7 +422,7 @@ export function generateBinomesGuidePdf(): jsPDF {
 
   doc.setTextColor(36, 32, 29);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15.5);
+  doc.setFontSize(15);
   doc.text('Protocole en 4 étapes face à un blocage relationnel', 14, 38);
 
   const steps = [
@@ -411,82 +448,142 @@ export function generateBinomesGuidePdf(): jsPDF {
     }
   ];
 
-  let sy = 45;
+  let sy = 43.5;
   steps.forEach((s) => {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(215, 205, 190);
     doc.setLineWidth(0.3);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9.2);
     const splitStep = doc.splitTextToSize(s.desc, 158);
-    const stepBoxH = 12 + splitStep.length * 4.6;
+    const stepBoxH = 10 + splitStep.length * 4.2;
 
     doc.roundedRect(14, sy, 182, stepBoxH, 2.5, 2.5, 'FD');
 
     doc.setFillColor(194, 94, 66);
-    doc.circle(23, sy + 7.5, 3.5, 'F');
+    doc.circle(23, sy + 6.5, 3.2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(s.num, 23, sy + 8.7, { align: 'center' });
+    doc.setFontSize(8.5);
+    doc.text(s.num, 23, sy + 7.6, { align: 'center' });
 
     doc.setTextColor(36, 32, 29);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
-    doc.text(s.title, 31, sy + 8.5);
+    doc.setFontSize(9.8);
+    doc.text(s.title, 31, sy + 7.5);
 
     doc.setTextColor(60, 55, 50);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(splitStep, 23, sy + 15);
+    doc.setFontSize(9.2);
+    doc.text(splitStep, 23, sy + 13.5);
 
-    sy += stepBoxH + 4;
+    sy += stepBoxH + 4.2;
   });
 
-  // Prayer section
+  // Prayer section (Compact, elegant, proportional to text)
+  sy += 2;
+  const prayerBoxH = 28;
   doc.setFillColor(36, 32, 29);
   doc.setDrawColor(212, 163, 115);
   doc.setLineWidth(0.6);
-  doc.roundedRect(14, sy + 3, 182, 60, 3, 3, 'FD');
+  doc.roundedRect(14, sy, 182, prayerBoxH, 3, 3, 'FD');
 
   doc.setTextColor(212, 163, 115);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
-  doc.text('PRIÈRE COMMUNE POUR L\'UNITÉ FRATERNELLE', pageW / 2, sy + 11, { align: 'center' });
+  doc.setFontSize(9.8);
+  doc.text('PRIÈRE COMMUNE POUR L\'UNITÉ FRATERNELLE', pageW / 2, sy + 6.5, { align: 'center' });
 
   doc.setTextColor(245, 240, 235);
   doc.setFont('helvetica', 'italic');
-  doc.setFontSize(9.5);
+  doc.setFontSize(8.8);
 
-  const prayer = '« Seigneur Jésus, Tu as rassemblé Pierre, Jean, Matthieu et Thomas au sein d\'un même collège apostolique, non pour qu\'ils se jugent, mais pour qu\'ils témoignent ensemble de la plénitude de Ton amour.\n\nBénis la diversité des tempéraments qui composent notre équipe. Délivre-nous du piège de la comparaison et de l\'illusion de l\'autosuffisance. Donne-nous la sagesse de discerner Ton œuvre dans le style de notre frère et de notre sœur, et la grâce de nous compléter humblement.\n\nFais de nous des serviteurs fidèles et unis, pour que le monde voie notre communion et reconnaisse que Tu nous as envoyés. Amen. »';
+  const prayer = '« Seigneur Jésus, Tu as rassemblé Pierre, Jean, Matthieu et Thomas au sein d\'un même collège, non pour qu\'ils se jugent, mais pour qu\'ils témoignent ensemble de la plénitude de Ton amour. Bénis la diversité des tempéraments qui composent notre équipe. Délivre-nous du piège de la comparaison et donne-nous la sagesse de discerner Ton œuvre dans le style de notre frère et de notre sœur. Fais de nous des serviteurs fidèles et unis. Amen. »';
   const splitPrayer = doc.splitTextToSize(prayer, 168);
-  doc.text(splitPrayer, pageW / 2, sy + 18, { align: 'center' });
+  doc.text(splitPrayer, pageW / 2, sy + 12.8, { align: 'center' });
 
-  // Rich Upsell Call-to-action highlighting the 3 sample pages
-  const upsellY = sy + 67;
+  // ===============================================================
+  // RICH UPSELL BLOCK WITH 3 VISUAL BOOK PREVIEW IMAGES
+  // ===============================================================
+  const upsellY = sy + prayerBoxH + 6;
+  const upsellH = 78;
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(212, 163, 115);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(14, upsellY, 182, 27, 2.5, 2.5, 'FD');
+  doc.setLineWidth(0.5);
+  doc.roundedRect(14, upsellY, 182, upsellH, 3, 3, 'FD');
 
-  doc.setTextColor(194, 94, 66);
+  // Upsell Header Tag
+  doc.setFillColor(194, 94, 66);
+  doc.roundedRect(20, upsellY + 4, 170, 6.5, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.text('POUR ALLER PLUS LOIN ENSEMBLE : DÉCOUVREZ LE DOSSIER COMPLET (36 PAGES)', 20, upsellY + 6.5);
-
-  doc.setTextColor(55, 50, 45);
-  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
-  const upsellDesc = 'Pour prolonger ce travail sur plusieurs semaines (parcours de maison ou séminaire), chaque participant peut débloquer son dossier d\'approfondissement de 36 pages (19 €) à l\'issue du test gratuit sur discipledejesus.netlify.app/test.\nCe document relié inclut : la couverture personnalisée reliée, la roue polaire des 8 composantes de tempérament, et la planche de synthèse 2D avec plan de croissance sur mesure.';
-  const splitUpsell = doc.splitTextToSize(upsellDesc, 170);
-  doc.text(splitUpsell, 20, upsellY + 12);
+  doc.text('POUR ALLER PLUS LOIN ENSEMBLE : DÉCOUVREZ LE DOSSIER COMPLET (36 PAGES)', 105, upsellY + 8.5, { align: 'center' });
+
+  // Subtitle
+  doc.setTextColor(60, 55, 50);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  const upDesc = 'Chaque membre peut débloquer son dossier individuel complet de 36 pages (19 €) à l\'issue du test gratuit.';
+  doc.text(upDesc, 105, upsellY + 14.5, { align: 'center' });
+
+  // 3 Images row
+  const imgY = upsellY + 18;
+  const imgW = 32;
+  const imgH = 43;
+  const imgSpacing = 22;
+  const startX = 35;
+
+  const previewCards = [
+    { data: imgCouv, label: 'Couverture reliée', sub: 'Dossier individuel (Page 1)' },
+    { data: imgRadar, label: 'Roue polaire radar', sub: '8 énergies (Page 4)' },
+    { data: imgSynthese, label: 'Cartographie 2D', sub: 'Planche bilan (Page 35)' }
+  ];
+
+  previewCards.forEach((c, idx) => {
+    const cx = startX + idx * (imgW + imgSpacing);
+
+    if (c.data) {
+      try {
+        doc.addImage(c.data, 'JPEG', cx, imgY, imgW, imgH);
+      } catch {
+        // Fallback card
+        doc.setFillColor(245, 240, 235);
+        doc.rect(cx, imgY, imgW, imgH, 'F');
+      }
+    } else {
+      doc.setFillColor(245, 240, 235);
+      doc.rect(cx, imgY, imgW, imgH, 'F');
+    }
+
+    // Gold frame around image
+    doc.setDrawColor(212, 163, 115);
+    doc.setLineWidth(0.4);
+    doc.rect(cx, imgY, imgW, imgH, 'S');
+
+    // Caption below
+    doc.setTextColor(194, 94, 66);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text(c.label, cx + imgW / 2, imgY + imgH + 3.5, { align: 'center' });
+
+    doc.setTextColor(120, 115, 110);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.text(c.sub, cx + imgW / 2, imgY + imgH + 6.8, { align: 'center' });
+  });
+
+  // CTA Link note below images
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.2);
+  doc.setTextColor(36, 34, 32);
+  doc.text('Tarif : 19 € (accès immédiat PDF) • Test et commande sur discipledejesus.netlify.app', 105, upsellY + 76, { align: 'center' });
 
   // Page 4 footer
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(130, 125, 120);
-  doc.text('Guide des binômes • Disciple — Archétypes bibliques • discipledejesus.netlify.app', 105, 290, { align: 'center' });
+  doc.text('Guide des binômes • Disciple — Archétypes bibliques • discipledejesus.netlify.app', 105, 291, { align: 'center' });
 
   return doc;
 }

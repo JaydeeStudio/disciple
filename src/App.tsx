@@ -13,6 +13,7 @@ import VipAdmin from './pages/VipAdmin';
 import EmailPreview from './pages/EmailPreview';
 import GroupKit from './pages/GroupKit';
 import OutreachToolkit from './pages/OutreachToolkit';
+import Faq from './pages/Faq';
 import Navbar from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AnimatePresence } from 'motion/react';
@@ -74,6 +75,7 @@ function App() {
                   <Route path="/resultats/:id" element={<Results />} />
                   <Route path="/personnages" element={<CharactersGallery />} />
                   <Route path="/methodologie" element={<Methodology />} />
+                  <Route path="/faq" element={<Faq />} />
                   <Route path="/profil" element={<Profile />} />
                   <Route path="/commande-succes" element={<OrderSuccess />} />
                   <Route path="/guide-complet-telechargement" element={<OrderSuccess />} />
